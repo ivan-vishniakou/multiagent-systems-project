@@ -9,100 +9,98 @@ from math import copysign
 import random
 import abc
     
-class Agent(UObject):    
+class Agent(PhysicalObject):    
+    """Base class for agents in the factory"""
     
     def __init__(self, factory, pos = [0, 0], o_type = 'AGENT'):
-        super(Agent, self).__init__(o_type = o_type)
-        """Base class agent constructor, position x and y required"""
-        self.pos = pos
+        super(Agent, self).__init__(o_type = o_type, pos=pos)
         self.progress = 0.0
         self._factory = factory
         self._busy = False
-
     
     @abc.abstractmethod
-    def tick(self):
+    def tick(self, dt=1):
         """Simulation step of an agent"""
-        pass
-    
-    def can_process(self, order):
-        """Checks if the input object can be processed
-        by the agent"""
-        return UObject.matches(order.properties, self.in_pattern)    
-    
-    def estimate_order(self, order):
-        """Estimate time to fulfill order"""
-        return INFINITY
-        
-    def estimate_time(self, order):
-        pass
-        
-    def execute_order(self, order):
-        """"""
         pass
 
     
 class Machine(Agent):
-
-    def __init__(self, factory, machine_type, 
-                 requires=[], removes=[], adds=[], pos=[0,0], 
+    """Stationary machine performing operations the fields have
+    prerequisite attiributes (requires), and added/removed attributes
+    in removes/adds respectively.
+    """
+    def __init__(self, factory, operation,
+                 requires=[], removes=[], adds=[], pos=[0,0],
                  productivity = 1.0, name='', o_type='MACHINE'):
-        super(Machine, self).__init__(factory, 
+        super(Machine, self).__init__(factory,
                                       pos=pos,
                                       o_type=o_type)
-        self.requires=requires 
-        self.removes=removes
+        self.requires=set(requires)
+        self.removes=set(removes)
         self.adds=adds
-
-        self.machine_type = machine_type
+        self.operation = operation
         self.productivity = productivity
         self._busy = False
         self._progress = 0.0
+        self._current_piece = None
         self.output = []
         self.input = []
     
-        
+    def tick(self, dt=1):
+        """Time tick for the machine: increases progress if there is an
+        item in work, puts in the output when comlete and picks new
+        from input."""
+        if self._current_piece is None:
+            if len(self.input)>0:
+                self._current_piece = self.input.pop(0)
+                self._progress = 0.0
+            return
+        else:
+            if self._progress>1.0:
+                self.output.append(self._current_piece)
+                self._current_piece = None
+            else:
+                self.progress += self.productivity*dt
+    
+    '''
     def can_provide(self, required_attribs):
         operation_match = [a in self.adds for a in required_attribs]
         if any(operation_match):
             return self.machine_type, self.requires, self.production_time()
         else:
             return None
+    '''
     
     def does_operation(self, operation):
-        return self.machine_type == operation
+        return self.operation == operation
             
     def production_time(self):
         return 1.0/self.productivity
-    
-    def execute_order(self, order):
-        if self.estimate_order(order)<INFINITY:
-            request = (Factory.ORDER_MOVE, self._in_type, order[2]*1.2)
-            self._factory.place_order(request)
-    
+        
     def __str__(self):
-        return '{} {}'.format(self.machine_type, str(self.uid).zfill(2))    
+        return '{} {}'.format(self.operation, str(self.uid).zfill(2))    
     
+        
 class Stock(Machine):
     
     def __init__(self, factory, pos=[0,0], name=''):
         super(Stock, self).__init__(factory,
-                                    machine_type='STOCK',
+                                    operation='STOCK',
                                     pos=pos,
                                     name=name,
                                     o_type='STOCK')
-    
+    '''
     def issue_new_blank(self):
         blank = Piece()
         self.output.append(blank)
         return blank.uid
-        
+    ''' 
     
 class Delivery(Machine):
     
     def __init__(self, factory, pos=[0,0], name=''):
         super(Delivery, self).__init__(factory,
-                                       machine_type='DELIVERY',
+                                       operation='DELIVERY',
                                        pos=pos,
                                        name=name,
                                        o_type='DELIVERY')
@@ -123,7 +121,7 @@ class Transporter(Agent):
     def _move_to_goal():
         pass
         
-    def tick(self):
+    def tick(self, dt=1):
         if self._goal is None:
             self._goal = random.choice(self._factory.agents)
             self._prim_axis = random.choice([1,0])

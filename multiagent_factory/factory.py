@@ -31,37 +31,37 @@ class Factory(object):
         self.agents.append(Stock(self, pos=(1,1)))
         self.agents.append(Delivery(self, pos=(29,1)))
         self.agents.append(Machine(self,
-                                   machine_type=Factory.ASSEMBLY_MACHINE, 
-                                   requires = [['fine_drilled', 'big_drilled'], ['rolled', 'colored']],
+                                   operation=Factory.ASSEMBLY_MACHINE, 
+                                   requires = ['assembly_tray'],
                                    removes = ['fine_drilled', 'big_drilled' ,'rolled', 'colored'],
                                    adds = ['final_product'],
                                    pos = (9,9)))
         self.agents.append(Machine(self,
-                                   machine_type=Factory.COLORING_MACHINE,
-                                   requires = [['rolled']],
+                                   operation=Factory.COLORING_MACHINE,
+                                   requires = ['rolled'],
                                    removes = [],
                                    adds = ['colored'],
                                    pos = (5,2)))
         self.agents.append(Machine(self,
-                                   machine_type=Factory.ROLLING_MACHINE,
-                                   requires = [['blank']],
+                                   operation=Factory.ROLLING_MACHINE,
+                                   requires = ['blank'],
                                    removes = ['blank'],
                                    adds = ['rolled'],
                                    pos = (5,4)))
         self.agents.append(Machine(self,
-                                   machine_type=Factory.FINE_DRILLING_MACHINE,
-                                   requires = [['big_drilled']],
+                                   operation=Factory.FINE_DRILLING_MACHINE,
+                                   requires = ['big_drilled'],
                                    removes = [],
                                    adds = ['fine_drilled'],
                                    pos = (20,3)))
         self.agents.append(Machine(self,
-                                   machine_type=Factory.BIG_DRILLING_MACHINE,
-                                   requires = [['blank']],
+                                   operation=Factory.BIG_DRILLING_MACHINE,
+                                   requires = ['blank'],
                                    removes = ['blank'],
                                    adds = ['big_drilled'],
-                                   pos = (20,5)))        
+                                   pos = (20,5)))
         
-        for _ in range(15): self.agents.append(Transporter(self, pos=[10, 10]))
+        for _ in range(7): self.agents.append(Transporter(self, pos=[10, 10]))
         #self.agents.append(Transporter(self, pos=[10, 20]))
         #self.agents.append(Transporter(self, pos=[10, 30]))
         print 'factory sim created'

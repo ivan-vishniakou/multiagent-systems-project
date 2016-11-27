@@ -8,71 +8,62 @@ Created on Tue Oct 25 14:56:02 2016
 INFINITY = float('inf')
 
 class UObject(object):
+    """Base class for objects in the simulation providing unique ids."""
     
-    PROP_ANY = 'ANY'
-    uid = 0
-    
-    @staticmethod
-    def matches(provided, required):
-        """Checks if the dictionary of object properties match the required """
-        for key in required.keys():
-            if required[key] != UObject.PROP_ANY:
-                if provided.has_key(key):
-                    if provided[key] != required[key]:
-                        return False
-                else:
-                    return False
-        return True
-    
+    uid = 0 #Static counter of objects
+
     @staticmethod
     def get_new_uid():
         UObject.uid += 1
         return UObject.uid - 1
         
     def __init__(self, o_type = 'UOBJECT'):
-        self.uid = UObject.uid
+        self.uid = UObject.get_new_uid()
         self.o_type = o_type
-        UObject.uid += 1
     
     def __str__(self):
-        return '{} {}'.format(self.o_type, str(self.uid).zfill(2))    
+        return '{} {}'.format(self.o_type, str(self.uid).zfill(2))
 
 
-class Piece(UObject):
+class PhysicalObject(UObject):
+    """Adds position and attributes to UObject to describe physical
+    objects, like work pieces and agents.
+    """
     
-    BLANK = 'BLANK'
-    
-    def __init__(self):
-        super(Piece, self).__init__(o_type = 'PIECE')
-        self.properties = {'pos':(0,0)}
-
-
-class ProductRecipe(object):
-    
-    def __init__(self, *args):
-        self.chain = list(args)
-
-    def __str__(self):
-        return ','.join([str(_) for _ in self.chain])
+    def __init__(self, o_type = 'PHYS_OBJECT', pos = [0,0], attributes = []):
+        super(PhysicalObject, self).__init__(o_type = o_type)
+        self.attributes = set(attributes)
+        self.pos = pos
         
-    def __repr__(self):
-        return self.__str__()
+    def matches(self, required):
+        """Checks if instances' set has all the attributes of the required."""
+        provided = self.attributes
+        for attr in provided:
+            if not attr in required:
+                return False
+        return False
 
 
-class Order(object):
+class Piece(PhysicalObject):
+    """Class representing a work piece in the factory"""
     
-    def __init__(self, item_id, 
-                 next_order=None, prev_order=None, 
-                 operation = 'NONE', timestamp = 0.0):
-        self.item_id = item_id
-        self.next_order = next_order
-        self.prev_order = prev_order
+    def __init__(self, pos = [0,0], attributes = []):
+        super(Piece, self).__init__(o_type = 'PIECE',
+                                    pos = pos,
+                                    attributes = attributes)
+
+
+class Task(UObject):
+    """Class representing a task performed by a mobile robot.
+    Contains attributes of a part and operation type to perform
+    on a matching part."""
+    
+    def __init__(self, attributes, operation, timestamp = 0.0):
         self.timestamp = timestamp
+        self.attributes = attributes
         self.operation = operation
-        self.priority = 1.0
     
     def __str__(self):
-        return 'Order PID {} to {}'.format(self.item_id, self.operation)
-        
-    def __repr__(self):
-        return self.__str__()
+        return 'Order {}: {} to {}'.format(self.uid,
+                                           self.attributes,
+                                           self.operation)
