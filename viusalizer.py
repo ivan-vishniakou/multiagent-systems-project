@@ -1,4 +1,4 @@
-import pygame, sys
+import pygame
 from multiagent_factory.factory import Factory
 from multiagent_factory.agents import *
 from pygame.locals import *
@@ -32,7 +32,7 @@ class FactoryVisualizer(object):
             rect.center = self.xy_to_screen(*a.pos)
             pygame.draw.rect(surf, FactoryVisualizer.MACHINE_COLOR, rect, 3)
             
-            font = pygame.font.SysFont(None, int(self.scale))#pygame.font.Font(None, self.scale)
+            font = pygame.font.SysFont(None, int(self.scale))
             text = font.render(str(a), 1, FactoryVisualizer.MACHINE_FONT_COLOR)
             textpos = text.get_rect()
             textpos.bottomleft = (rect.bottomleft[0]+self.scale*0.2, 
@@ -50,7 +50,7 @@ class FactoryVisualizer(object):
             rect.center = self.xy_to_screen(*a.pos)
             pygame.draw.ellipse(surf, FactoryVisualizer.TRANSPORTER_COLOR, rect, 0)
             
-            font = pygame.font.SysFont(None, int(self.scale))#pygame.font.Font(None, self.scale)
+            font = pygame.font.SysFont(None, int(self.scale))
             text = font.render(str(a), 1, FactoryVisualizer.MACHINE_FONT_COLOR)
             textpos = text.get_rect()
             textpos.bottomleft = (rect.bottomleft[0]+self.scale*0.2, 
@@ -63,7 +63,7 @@ class FactoryVisualizer(object):
         screen.fill((255, 255, 255))
         background = self.draw_static()
         background = background.convert()
-        center = screen.get_rect().center                
+        center = screen.get_rect().center
         clock = pygame.time.Clock()
         done = False
         while not done:
@@ -74,18 +74,28 @@ class FactoryVisualizer(object):
                     if event.key == pygame.K_ESCAPE:
                         done = True
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 4: self.scale *= 1.1
-                    if event.button == 5: self.scale /= 1.1
-                    # TODO, smart zooming like in google maps
-                    #mouse_pos = pygame.mouse.get_pos()
-                    #center = (int(0.5*center[0]+0.5*(mouse_pos[0]-center[0])), 
-                    #          int(0.5*center[1]+0.5*(mouse_pos[1]-center[1])))
+                    mouse_pos = pygame.mouse.get_pos()
+                    dx, dy = mouse_pos[0]-center[0], mouse_pos[1]-center[1]
+                    if event.button == 4 and self.scale<500: self.scale *= 1.1
+                    if event.button == 5 and self.scale>0.1: self.scale /= 1.1
+                    ''' TODO: nicer zoom in/out
+                    mouse_pos = pygame.mouse.get_pos()
+                    prev_rect = background.get_rect()
                     background = self.draw_static()
+                    new_rect = background.get_rect()
+                    center = (
+                        mouse_pos
+                              
+                              )
+                    
+                    p = pygame.Rect()
+                    '''
+                    background = self.draw_static()
+                    #print dx, dy
             overlay = self.draw_dynamic(background)
             screen.fill((255, 255, 255))
             rect = background.get_rect()
             rect.center = center
-            #screen.blit(background, rect)
             screen.blit(overlay, rect)
             pygame.display.flip()
             clock.tick(60)
@@ -93,5 +103,10 @@ class FactoryVisualizer(object):
         pygame.quit()  
         
 if __name__=='__main__':
-    fv = FactoryVisualizer(Factory())
+    f = Factory()
+    fv = FactoryVisualizer(f)
+    f.order_product([ (['blank'],[Factory.COLORING_MACHINE]),
+                      (['colored'],[Factory.DELIVER])
+                    ], 
+                      [['blank']])
     fv.run()

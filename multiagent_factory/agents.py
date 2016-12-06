@@ -89,12 +89,13 @@ class Stock(Machine):
                                     pos=pos,
                                     name=name,
                                     o_type='STOCK')
-    '''
-    def issue_new_blank(self):
-        blank = Piece()
-        self.output.append(blank)
-        return blank.uid
-    ''' 
+    
+    def issue_piece(self, attributes):
+        """Places a piece with given attributes in the stock"""
+        p = Piece(self, attributes)
+        self.output.append(p)
+        self._factory.pieces.append(p)
+        pass
     
 class Delivery(Machine):
     
@@ -115,28 +116,61 @@ class Transporter(Agent):
         super(Transporter, self).__init__(factory, o_type='TRANSPORTER', pos=pos)
         self._busy = False
         self._progress = 0.0
-        self._goal = None
+        self._move_goal = None
+        self._task = None
+        self._carried_piece = None
         self._max_vel = .1
         
     def _move_to_goal():
         pass
+    
+    def _at_goal():
+        
+        pass
+    
+    def _select_task(self):
+        fulfillable = []
+        for t in self._factory.tasks:
+            suiting_pieces = self._factory.find_piece_by_attributes(t.attributes)
+            if len(suiting_pieces)>0:
+                fulfillable.append((t, suiting_pieces))
+        if len(fulfillable)>0:
+            #first task, first fitting piece
+            piece = fulfillable[0][1][0]
+            to_machine = self._factory.find_machine_by_operation(fulfillable[0][0])[0]
+            return piece, to_machine
+        else:
+            return None
         
     def tick(self, dt=1):
-        if self._goal is None:
+        #return
+        if self._task is None:
+            self._task = self._select_task()
+            return
+        if self._move_goal is None:
+            if self._carried_piece is None:
+                self._move_goal = self._task[1].owner.pose
+            else:
+                self._move_goal = self._task
+        else:
+            self._move_to_goal()
+            
+        
+        if self._move_goal is None:
             self._goal = random.choice(self._factory.agents)
             self._prim_axis = random.choice([1,0])
             print 'goat a goal', self._goal
         else:
             for ax in [self._prim_axis, not self._prim_axis]:
-                if (abs(self._goal.pos[ax]-self.pos[ax])>self._max_vel):
-                    self.pos[ax] += copysign(self._max_vel, self._goal.pos[ax]-self.pos[ax])
+                if (abs(self._move_goal.pos[ax]-self.pos[ax])>self._max_vel):
+                    self.pos[ax] += copysign(self._max_vel, self._move_goal.pos[ax]-self.pos[ax])
                     return
                 elif (abs(self._goal.pos[ax]-self.pos[ax])>self._max_vel*0.1):
                     self.pos[ax] = self._goal.pos[ax]
                     return
 
             #arrived to goal
-            self._goal = None
+            self._move_goal = None
         #self.pos = self.pos[0]+random.random()*0.1-0.05, self.pos[1]+random.random()*0.1-0.05
     
     
