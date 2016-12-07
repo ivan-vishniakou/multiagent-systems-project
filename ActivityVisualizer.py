@@ -1,31 +1,37 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
+import random as rn
+
 plt.ion()
 
 class ActivityVisualizer(object):
 	
-	def __init__(self, agent_states, time):
+	def __init__(self):
 		self.agent_record = {}
-		self.start_time = time
-		self.current_time = time
 		self.fig, self.ax = plt.subplots()
-		self.lines, = self.ax.plot([],[], 'o')
-		self.ticks = []
+		self.ax.set_title("Agent Activity")
+		self.ax.set_xlabel('Time')
+		self.ax.set_ylabel('Agents')
+		self.ticks = [""]
 	
 	def init_agent(self,agent,state,t):
 		if agent in self.agent_record:
 			print("Warning: attempt to duplicate agent in record")
 		else:
 			agent_num = len(self.agent_record.keys()) + 1
+			agent_color = (0.0,rn.random()*0.9,rn.random()*0.9)
+			self.agent_record[agent]={'stop_times':[],'agent_num':agent_num,'color':agent_color}
 			if (state):
-				self.agent_record[agent]={'state':True, 'start_times':[t],'stop_times':[],'agent_num':agent_num}
+				self.agent_record[agent]['state']=True
+				self.agent_record[agent]['start_times']=np.array([t],dtype=float)
 			else:
-				self.agent_record[agent]={'state':False, 'start_times':[],'stop_times':[],'agent_num':agent_num}
-			self.ax.add_patch(patches.Rectangle((0, float(self.agent_record[agent]['agent_num']) - 0.4), 0, 0.8))
+				self.agent_record[agent]['state']=False
+				self.agent_record[agent]['start_times']=np.array([],dtype=float)
+			self.ax.add_patch(patches.Rectangle((0.0, float(self.agent_record[agent]['agent_num']) - 0.4), 0.0, 0.8))
 			self.ticks.append(agent)
-			plt.yticks(np.arange(1,len(self.ticks)+1),self.ticks)
-			
+			self.ax.set_yticklabels(self.ticks)
+
 			
 		
 	def update(self, agent_states, t):
@@ -36,16 +42,19 @@ class ActivityVisualizer(object):
 				if agent_states[agent] != self.agent_record[agent]['state']:
 					self.agent_record[agent]['state'] = agent_states[agent]
 					if agent_states[agent]:
-						self.agent_record[agent]['start_times'].append(t)
+						self.agent_record[agent]['start_times'] = np.append(self.agent_record[agent]['start_times'],t)
 					else:
-						self.agent_record[agent]['stop_times'].append(t)
+						self.agent_record[agent]['stop_times'] = np.append(self.agent_record[agent]['stop_times'] , t)
 						self.ax.add_patch(patches.Rectangle(
 							(self.agent_record[agent]['start_times'][-1], float(self.agent_record[agent]['agent_num']) - 0.4), 
 							self.agent_record[agent]['stop_times'][-1] - self.agent_record[agent]['start_times'][-1], 
-							0.8))
+							0.8,color=self.agent_record[agent]['color']))
 						self.ax.autoscale_view()
-						plt.draw()
+						self.ticks[self.agent_record[agent]['agent_num']] = agent + ": " + str(int(100.0*float(sum(self.agent_record[agent]['stop_times']-self.agent_record[agent]['start_times'])/float(t)))) + "%"
+						self.ax.set_yticklabels(self.ticks)
 
+						plt.draw()
+						
 
 	def dump(self):
 		for agent in self.agent_record:
@@ -54,15 +63,14 @@ class ActivityVisualizer(object):
 				print '\t' + item + ": ", self.agent_record[agent][item]
 	
 def test():
-	import random as rn
 	import time	
 	
-	agent_states={'transport1':True,'transport2':False, 'drill1':True, 'drill1':False, 'drill2':True, 'press':True}
+	agent_states={'trans_1':None,'trans_2':None, 'drill_1':None, 'drill_3':None, 'drill_2':None, 'press_1':None}
 	t = 0
 	
-	av = ActivityVisualizer(agent_states,t)
+	av = ActivityVisualizer()
 	
-	for i in range(t+1,200):
+	for i in range(t,200):
 		for agent in agent_states:
 			if (rn.random() < 0.07):
 				agent_states[agent] = False
