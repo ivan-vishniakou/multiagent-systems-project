@@ -41,6 +41,9 @@ class PhysicalObject(UObject):
     def matches(self, required):
         """Checks if instances' set has all the attributes of the required."""
         provided = self.attributes
+        for attr in required:
+            if not attr in provided:
+                return False
         for attr in provided:
             if not attr in required:
                 return False
@@ -54,6 +57,23 @@ class Piece(PhysicalObject):
         super(Piece, self).__init__(o_type = 'PIECE',
                                     pos = owner.pos,
                                     attributes = attributes)
+        self.owner = owner
+        self.reserved = False
+        
+    def __str__(self):
+        return '{} {}: {}'.format(self.o_type, 
+                                  str(self.uid).zfill(2),
+                                  str(list(self.attributes))
+                                  )
+
+        
+class AssemblyTray(Piece):
+    """Class representing a work piece in the factory"""
+    
+    def __init__(self, owner):
+        super(AssemblyTray, self).__init__(o_type = 'TRAY',
+                                    owner = owner,
+                                    attributes = ['assembly_tray', 'empty'])
 
 
 class Task(UObject):

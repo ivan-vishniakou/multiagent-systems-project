@@ -31,13 +31,26 @@ class FactoryVisualizer(object):
             rect = pygame.Rect(self.xy_to_screen(0,0), (self.xy_to_screen(1,1)))
             rect.center = self.xy_to_screen(*a.pos)
             pygame.draw.rect(surf, FactoryVisualizer.MACHINE_COLOR, rect, 3)
+            rect.size = self.xy_to_screen(a._progress, 1)
+            pygame.draw.rect(surf, FactoryVisualizer.MACHINE_COLOR, rect, 0)
             
+            #PRINT NAME
             font = pygame.font.SysFont(None, int(self.scale))
             text = font.render(str(a), 1, FactoryVisualizer.MACHINE_FONT_COLOR)
             textpos = text.get_rect()
             textpos.bottomleft = (rect.bottomleft[0]+self.scale*0.2, 
                                   rect.bottomleft[1]-self.scale*0.1)
             surf.blit(text, textpos)
+            
+            #PRINT INPUT/OUTPUT
+            to_print = 'I:{} O:{}'.format(len(a.input), len(a.output))
+            font = pygame.font.SysFont(None, int(self.scale*0.7))
+            text = font.render(to_print, 1, FactoryVisualizer.MACHINE_FONT_COLOR)
+            textpos = text.get_rect()
+            textpos.topleft = (rect.bottomleft[0], 
+                                  rect.bottomleft[1]+self.scale*0.1)
+            surf.blit(text, textpos)
+
         return surf
     
     def draw_dynamic(self, background):
@@ -50,12 +63,21 @@ class FactoryVisualizer(object):
             rect.center = self.xy_to_screen(*a.pos)
             pygame.draw.ellipse(surf, FactoryVisualizer.TRANSPORTER_COLOR, rect, 0)
             
+            #PRINT NAME
             font = pygame.font.SysFont(None, int(self.scale))
             text = font.render(str(a), 1, FactoryVisualizer.MACHINE_FONT_COLOR)
             textpos = text.get_rect()
             textpos.bottomleft = (rect.bottomleft[0]+self.scale*0.2, 
                                   rect.bottomleft[1]-self.scale*0.1)
             surf.blit(text, textpos)
+            
+            if not a._carried_piece is None:
+                font = pygame.font.SysFont(None, int(self.scale*0.7))
+                text = font.render(str(a._carried_piece), 1, FactoryVisualizer.MACHINE_FONT_COLOR)
+                textpos = text.get_rect()
+                textpos.topleft = (rect.bottomright[0]+self.scale*0.1, 
+                                      rect.bottomright[1]-self.scale*0.1)
+                surf.blit(text, textpos)
         return surf
     
     def run(self):
@@ -66,6 +88,7 @@ class FactoryVisualizer(object):
         center = screen.get_rect().center
         clock = pygame.time.Clock()
         done = False
+        paused = False
         while not done:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -73,6 +96,10 @@ class FactoryVisualizer(object):
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         done = True
+                    elif event.key == pygame.K_d:
+                        self.factory.debug_print()
+                    elif event.key == pygame.K_p:
+                        paused = not paused
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mouse_pos = pygame.mouse.get_pos()
                     dx, dy = mouse_pos[0]-center[0], mouse_pos[1]-center[1]
@@ -85,12 +112,10 @@ class FactoryVisualizer(object):
                     new_rect = background.get_rect()
                     center = (
                         mouse_pos
-                              
                               )
-                    
                     p = pygame.Rect()
                     '''
-                    background = self.draw_static()
+            background = self.draw_static()
                     #print dx, dy
             overlay = self.draw_dynamic(background)
             screen.fill((255, 255, 255))
@@ -98,15 +123,7 @@ class FactoryVisualizer(object):
             rect.center = center
             screen.blit(overlay, rect)
             pygame.display.flip()
-            clock.tick(60)
-            self.factory.tick()
-        pygame.quit()  
-        
-if __name__=='__main__':
-    f = Factory()
-    fv = FactoryVisualizer(f)
-    f.order_product([ (['blank'],[Factory.COLORING_MACHINE]),
-                      (['colored'],[Factory.DELIVER])
-                    ], 
-                      [['blank']])
-    fv.run()
+            clock.tick(200)
+            if not paused:
+                self.factory.tick()
+        pygame.quit()

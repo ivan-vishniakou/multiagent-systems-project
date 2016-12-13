@@ -15,8 +15,8 @@ class Factory(object):
     ROLLING_MACHINE = 'ROLLING_MACHINE'
     BIG_DRILLING_MACHINE = 'BIG_DRILLING_MACHINE'
     FINE_DRILLING_MACHINE = 'FINE_DRILLING_MACHINE'
-    COLORING_MACHINE = 'COLORING_MACHINE'
-    ASSEMBLY_MACHINE = 'ASSEMBLY_MACHINE'
+    COATING_MACHINE = 'COATING_MACHINE'
+    FORCE_FITTING_MACHINE = 'FORCE_FITTING_MACHINE'
         
     def __init__(self):
         self.time = 0
@@ -28,8 +28,8 @@ class Factory(object):
         
         #create agents:
         self.size = (30,30)
-        self.agents.append(Stock(self, pos=(1,1)))
-        self.agents.append(Delivery(self, pos=(29,1)))
+        self.agents.append(Stock(self, pos=(5,5)))
+        self.agents.append(Delivery(self, pos=(20,5)))
         '''
         self.agents.append(Machine(self,
                                    operation=Factory.ASSEMBLY_MACHINE, 
@@ -39,32 +39,25 @@ class Factory(object):
                                    pos = (9,9)))
         '''
         self.agents.append(Machine(self,
-                                   operation=Factory.COLORING_MACHINE,
+                                   operation=Factory.COATING_MACHINE,
                                    requires = [],
-                                   removes = [],
-                                   adds = ['colored'],
-                                   pos = (5,2)))
-        '''
-        self.agents.append(Machine(self,
-                                   operation=Factory.ROLLING_MACHINE,
-                                   requires = ['blank'],
                                    removes = ['blank'],
-                                   adds = ['rolled'],
-                                   pos = (5,4)))
+                                   adds = ['coated'],
+                                   pos = (10,20)))
         self.agents.append(Machine(self,
                                    operation=Factory.FINE_DRILLING_MACHINE,
-                                   requires = ['big_drilled'],
-                                   removes = [],
+                                   requires = [],
+                                   removes = ['blank'],
                                    adds = ['fine_drilled'],
-                                   pos = (20,3)))
+                                   pos = (8,10)))
         self.agents.append(Machine(self,
                                    operation=Factory.BIG_DRILLING_MACHINE,
-                                   requires = ['blank'],
+                                   requires = [],
                                    removes = ['blank'],
                                    adds = ['big_drilled'],
-                                   pos = (20,5)))
-        '''
-        for _ in range(1): self.agents.append(Transporter(self, pos=[10, 10]))
+                                   pos = (12,11)))
+        
+        for _ in range(5): self.agents.append(Transporter(self, pos=[10, 10]))
         #self.agents.append(Transporter(self, pos=[10, 20]))
         #self.agents.append(Transporter(self, pos=[10, 30]))
         print 'factory sim created'
@@ -79,7 +72,9 @@ class Factory(object):
     def order_product(self, recipe, issue):
         """Places tasks onto the list to manufacture a product. Relies
         on valid recipe. Recipe is a list of tuples 
-        ({attributes}, [operations])."""
+        ({attributes}, [operations]).
+        Issue is a list of pieces to place in stock.
+        """
         new_tasks = []
         for attr, op in recipe:
             task = Task(attr, op, timestamp=self.time)
@@ -88,7 +83,8 @@ class Factory(object):
         stock = self.find_machine_by_operation(self.STOCK)[0]
         for i in issue:
             stock.issue_piece(i)
-        print 'Placed order {}'.format(new_tasks)
+        #print 'Placed order {}'.format(new_tasks)
+        #print self.tasks
     
     def find_machine_by_operation(self, operation):
         """returns list of machines capable of doing a requested operation"""
@@ -101,17 +97,32 @@ class Factory(object):
     def find_piece_by_attributes(self, attributes):
         found = []
         for p in self.pieces:
+            if p.reserved:
+                continue
             if p.matches(attributes):
-                found.append(p)
+                if isinstance(p.owner, Machine):
+                    if p in p.owner.output:
+                        found.append(p)
         return found
+         
+    def debug_print(self):
+        print '--- DEBUG ---'
+        print 'tasks'
+        for t in self.tasks:
+            print t
+            
+        print '\npieces'
+        for p in self.pieces:
+            print '{} - {}'.format(p, p.attributes)
 
         
         
 if __name__ == '__main__':
     #TEST
     f= Factory()
-    f.order_product([ (['blank'],[Factory.COLORING_MACHINE]),
-                  (['colored'],[Factory.DELIVER])
+    for _ in range(1):
+        f.order_product([ (['a', 'b', 'c'],[Factory.COATING_MACHINE])
                 ], 
-                  [['blank']])
-    f.find_piece_by_attributes(['blank'])
+                  [['a', 'b']])
+    f.tick()
+    #f.find_piece_by_attributes(['blank'])
