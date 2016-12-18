@@ -2,12 +2,23 @@
 """
 Created on Tue Oct 25 14:55:08 2016
 
-@author: ivan
+@author: ivan, ben, eugenia
 """
+import spade
 from base import *
 from math import copysign
 import random
 import abc
+
+class Agents(): 
+	@staticmethod
+	STOCK_MACHINE = 'STOCK_MACHINE'
+	DELIVERY_MACHINE = 'DELIVERY_MACHINE'
+	ROLLING_MACHINE = 'ROLLING_MACHINE'
+	BIG_DRILLING_MACHINE = 'BIG_DRILLING_MACHINE'
+	FINE_DRILLING_MACHINE = 'FINE_DRILLING_MACHINE'
+	COATING_MACHINE = 'COATING_MACHINE'
+	FORCE_FITTING_MACHINE = 'FORCE_FITTING_MACHINE'
     
 class Agent(PhysicalObject):    
     """Base class for agents in the factory"""
@@ -24,24 +35,20 @@ class Agent(PhysicalObject):
         pass
     
 class Machine(Agent):
-    """Stationary machine performing operations the fields have
-    prerequisite attiributes (requires), and added/removed attributes
-    in removes/adds respectively.
-    """
-    def __init__(self, factory, operation,
-                 requires=[], removes=[], adds=[], pos=[0,0],
-                 productivity = 0.005, name='', o_type='MACHINE'):
+    """Stationary machine able to perform one or more operations"""
+    def __init__(self, factory, operations
+                 pos=[0,0], productivity = 0.005, name='', o_type='MACHINE'):
         super(Machine, self).__init__(factory,
                                       pos=pos,
                                       o_type=o_type)
-        self.requires=set(requires)
-        self.removes=set(removes)
-        self.adds=adds
-        self.operation = operation
+
+
+        self.operations = operations # set of operations 
         self.productivity = productivity
         self._busy = False
         self._progress = 0.0
         self._current_piece = None
+		self._tasks=[]
         self.output = []
         self.input = []
     
@@ -66,13 +73,16 @@ class Machine(Agent):
         for attr in self.removes:
             if attr in attributes:
                 attributes.remove(attr)
-        for attr in self.adds:
-            attributes.add(attr)
+            for attr in self.adds:
+			'''changed to append for "set to list" change '''
+			#attributes.add(attr)
+			attributes.append(attr)
         return attributes
 
+	# TODO - Add lookahead that will take on a task based on how much time it will take a piece to be delivered and by how much time is left in operation
     def tick(self, dt=1):
         """Time tick for the machine: increases progress if there is an
-        item in work, puts in the output when comlete and picks new
+        item in work, puts in the output when comlpete and picks new
         from input."""
         if self._current_piece is None:
             if len(self.input)>0:
@@ -94,6 +104,70 @@ class Machine(Agent):
                 self._progress += self.productivity*dt
             pass
     
+    # select the oldest task that is able to be accomplished
+    def _select_task(self):
+        doable = set()
+        fulfillable = set()
+        
+        for task in self._factory.machine_tasks:
+			for operation in task.operations:
+				if operation in self.operations:
+					doable.add(task)
+		if len(doable>0):
+			for task in doable:
+				pcs_available = True
+				reserved_pcs = []
+				for i in range(len(task.piece_types)): # see if enough pieces exist with required attributes
+					suiting_pieces = self._factory.find_piece_with_attr(task.piece_types[i],task.req_attr[i])					
+					if len(suiting_pieces)>0:
+						suiting_pieces[0].reserved = True # temporarily reserve piece to account for processes that require multiple of same type
+						reserved_pcs.apped(suiting_pieces[0])
+					else:
+						pcs_available = False
+						break
+				if len(reserved_pcs) > 0:
+					for pc in reserved_pcs:
+						pc.reserved = False # remove temporary reservation
+				if pcs_available == True:
+					fulfillable.append(task)						
+		selected_task = None
+		selected_pcs = []
+		if len(fulfillable)>0:
+			selected_task = fulfillable[0]
+			for task in fullfillable: # pick oldest task
+				if (task.timestamp < selected_task.timestamp):
+					selected_task = task
+			# TODO - implement piece-choosing heuristic
+			for i in range(len(task.pieces)): # reserve matching pcs randomly
+				suiting_pieces = self._factory.find_piece_with_attr(task.piece_types[i],task.req_attr[i])
+				piece = random.choice(suiting_pieces)			
+				piece.reserved = True
+				selected_pcs.append(piece)
+			### Work stopped here ###
+			if len(task.operations)>1:
+				self.operation
+			for op in selected_task.operations: # task may contain multiple operations - select one the machine is capable of 
+				if op in self.operations:
+					operation = op
+					break
+			for pc in selected_pcs:	# create transport tasks for all the reserved pieces
+				_factory.transport_tasks.append(TransportTask(pc, self, _factory.time))
+			
+			
+            if len(task.operations)>1:
+                task.operations.remove(operation)
+                task.attributes = list(
+                        to_machine.modify_attributes(
+                            set(task.attributes)
+                        )
+                    )
+            else:
+                self._factory.tasks.remove(task)
+            piece.reserved = True
+            return piece, to_machine
+        else:
+            return None
+            
     def does_operation(self, operation):
         return self.operation == operation
             
@@ -101,25 +175,48 @@ class Machine(Agent):
         return 1.0/self.productivity
         
     def __str__(self):
-        return '{} {}'.format(self.operation, str(self.uid).zfill(2))    
-    
-        
+        return '{} {}'.format(self.operation, str(self.uid).zfill(2))  
+   
 class Stock(Machine):
     
-    def __init__(self, factory, pos=[0,0], name=''):
+    def __init__(self, factory, initial_stock, pos=[0,0], name=''):
         super(Stock, self).__init__(factory,
                                     operation='STOCK',
+                                    productivity = 0.05,
                                     pos=pos,
-                                    name=name,
-                                    o_type='STOCK')
-    
-    def issue_piece(self, attributes):
-        """Places a piece with given attributes in the stock"""
-        p = Piece(self, attributes)
-        self.output.append(p)
-        self._factory.pieces.append(p)
-        pass
-    
+                                    name=name, o_type='STOCK')
+        self.stock = []
+        for issue in initial_stock:
+			self.input_piece(Piece(self, issue[0], issue[1]))
+                                    
+    def tick(self, dt=1):
+        """Time tick for the machine: increases progress if there is an
+        item in work, puts in the output when comlete and picks new
+        from input."""
+        if self._current_piece is None:
+            if len(self.input)>0:
+                self._current_piece = self.input.pop(0)
+                print '{} FETCHED PIECE {}'.format(self,self._current_piece)
+                self._progress = 0.0
+            pass
+        else:
+            if self._progress>1.0:
+                piece = self._current_piece
+                piece.reserved = False
+                self.output.append(piece)
+                self._factory.pieces.append(piece)
+                self._current_piece = None
+                self._progress = 0
+                print '{} COMPLETE PROCESSING {}'.format(self, piece)
+            else:
+                self._progress += self.productivity*dt
+            pass
+	
+	def add_to_stock(self, piece):
+		piece.owner = self
+		piece.reserved = True
+		self.stock.append(piece)
+          
 class Delivery(Machine):
     
     def __init__(self, factory, pos=[0,0], name=''):
@@ -139,9 +236,14 @@ class Delivery(Machine):
             self.output.append(piece)
             print 'DELIVERED {} {}'.format(piece, piece.attributes)
         pass
-    
-    
+ 
+# TODO       
+#class Big Drill
+# TODO
+#class big small drill
+   
 class Transporter(Agent):
+	# TODO - remove me : transporters can only grab reserved parts as they will only do the bidding of machine agents 
     
     def __init__(self, factory, pos=[0,0]):
         super(Transporter, self).__init__(factory, o_type='TRANSPORTER', pos=pos)
@@ -242,7 +344,7 @@ class Transporter(Agent):
                     self._set_move_goal(None)
                     print '{} PICKED {}'.format(self, self._carried_piece)
                     pass
-                else:
+                else: 
                     #PLACE
                     piece, machine = self._task
                     machine.input_piece(self._drop_piece())
