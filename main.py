@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+Created on Tue Oct 25 14:55:08 2016
 
-
-
+@author: ivan, ben, eugenia
+"""
 # TODO - add base type to recipe
 # TODO - add issue to recipe
 # TODO - let stock look for issue in task list
@@ -9,6 +11,7 @@
 # TODO - Ivan doesn't like select task due to random nature and untyped tuples
 # TODO - replace machines with actions in tasks so that machines in the end could do/choose multiple operations, say if a machine could drill large or small holes.
 # TODO - add hooks for performance visualizer
+# TODO - add recipe/operation checker 
 
 from visualizer import FactoryVisualizer
 from activity_visualizer import ActivityVisualizer

@@ -13,10 +13,10 @@ class Factory(object):
         
     def __init__(self):
         self.time = 0
-        self.agents = []
-        self.pieces = []
-        self.machine_tasks = []
-        self.transport_tasks = []
+        self.agents = set()
+        self.pieces = set()
+        self.machine_tasks = set()
+        self.transport_tasks = set()
         self.time_step = 0.1
         
         

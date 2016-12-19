@@ -26,18 +26,19 @@ class Attributes():
 	 COATED = 'coated'
 	
 class Operation():
-	def __init__(self, name, adds_attr, removes_attr, requires_attr, adds_pcs, removes_pcs, requires_pcs, accepts_pcs):
+    
+	def __init__(self, name, accepts_pcs, requires_pcs, combines_pcs, adds_attr, removes_attr, requires_attr):
 		self.name = name 					# Name of operation
 		
+        self.accepts_pcs = accepts_pcs		# set of accepted components
+        self.requires_pcs = requires_pcs	# list of pcs required for operation - if populated, accepts_pcs is ignored
+        self.combines_pcs = combines_pcs    # list of set and piece: destroyed indexes of requires_pcs and created pc
+        
         self.adds_attr = adds_attr 			# list of set of attributes added to pcs
         self.removes_attr = removes_attr 	# list of set of attributes removed from pcs
         self.requires_attr = requires_attr	# list of set of attributes required for operation
         
-        self.adds_pcs = adds_pcs			# list of pcs added to pcs
-        self.removes_pcs = removes_pcs 		# list of pcs removed from pcs
-        self.requires_pcs = requires_pcs	# list of pcs required for operation - if defined, accepts_pcs is ignored
         
-        self.accepts_pcs = accepts_pcs		# set of accepted components
         
         
     # TODO - fix this print function when arguments are finalized
@@ -49,58 +50,58 @@ class Operation():
 class Procure(Operation):
 	@staticmethod
 	def __init__(self):
-		super(Procure, self).__init__(Operation.PROCURE, 
-		[set()], [set()], [set()], 
-		[], [], [], 
-		[Pieces.BLOCK, Pieces.BEARING, Pieces.ASSY_TRAY]):
+		super(Procure, self).__init__(Operation.PROCURE,
+		[Pieces.BLOCK, Pieces.BEARING, Pieces.ASSY_TRAY],
+        [], [], 
+		[set()], [set()], [set()])
 		
 class Deliver(Operation):
 	@staticmethod
 	def __init__(self):
 		super(Deliver, self).__init__(Operation.DELIVER, 
-		[set()], [set()], [set()], 
-		[], [], [], 
-		[Pieces.BLOCK, Pieces.BEARING, Pieces.ASSY]):
+		[Pieces.BLOCK, Pieces.BEARING, Pieces.ASSY],
+		[], [], 
+		[set()], [set()], [set()])
 		
 class Roll(Operation):
 	@staticmethod
 	def __init__(self):
-		super(Roll, self).__init__(Operation.ROLL, 
-		[[Attributes.ROLLED]], [set()], [set()],
-		[], [], [], 
-		[Pieces.BEARING]):
+		super(Roll, self).__init__(Operation.ROLL,
+		[Pieces.BEARING],
+		[], [], 
+		[[Attributes.ROLLED]], [set()], [set()]):
 		
 class DRILL_BIG(Operation):
 	@staticmethod
 	def __init__(self):
 		super(DRILL_BIG, self).__init__(Operation.DRILL_BIG, 
-		[set(Attributes.BIG_DRILLED)], [set()], [set()], 
-		[], [], [], 
-		[Pieces.BLOCK]):
+		[Pieces.BLOCK],, 
+		[], [],
+		[set(Attributes.BIG_DRILLED)], [set()], [set()]):
 		
 class DRILL_FINE(Operation):
 	@staticmethod
 	def __init__(self):
 		super(DRILL_FINE, self).__init__(Operation.DRILL_FINE, 
-		[set(Attributes.FINE_DRILLED)], [set()], [set()], 
-		[], [], [], 
-		[Pieces.BLOCK]):
+		[Pieces.BLOCK], 
+		[], [], 
+		[set(Attributes.FINE_DRILLED)], [set()], [set()],):
 		
 class COAT(Operation):
 	@staticmethod
 	def __init__(self):
 		super(COAT, self).__init__(Operation.COAT, 
-		[set(Attributes.COATED)], [set()], [set()], 
-		[], [], [], 
-		[Pieces.BLOCK]):
+		[Pieces.BLOCK],
+		[], [],
+		[set(Attributes.COATED)], [set()], [set()] ):
 		
 class FORCE_FIT(Operation):
 	@staticmethod
 	def __init__(self):
 		super(FORCE_FIT, self).__init__(Operation.FORCE_FIT, 
-		[set(),set(),set()], [set(),set(),set()], [set(Attributes.BIG_DRILLED),set(),set()], 
-		[Pieces.BEARING_BLOCK_ASSY], [Pieces.BLOCK, Pieces.BEARING], [Pieces.BLOCK, Pieces.BEARING, Pieces.ASSY_TRAY], 
-		[]):
+		[],
+		[Pieces.BLOCK, Pieces.BEARING, Pieces.ASSY_TRAY], [[0, 1],Pieces.BEARING_BLOCK_ASSY],
+		[set(),set(),set()], [set(Attributes.BIG_DRILLED),set(),set()], [set(Attributes.BIG_DRILLED),set(),set()], ):
 
 class Pieces():
 	@staticmethod
@@ -111,7 +112,7 @@ class Pieces():
 
 class Piece(PhysicalObject):
     
-    def __init__(self, owner, piece_type, attributes = []):
+    def __init__(self, owner, piece_type, attributes = set()):
         super(Piece, self).__init__(o_type = 'PIECE',
                                     pos = owner.pos,
                                     attributes = attributes)
@@ -185,8 +186,11 @@ class PhysicalObject(UObject):
 class Recipes():
 	@staticmethod
 	"""
-	Methodology:
-	Recipes should facilitate maximum parallelism
+	Recipe creation methodology
+     - Recipes should facilitate maximum parallelism
+     - If 2 parts of the same type are needed and one requires more attributes it should be listed first
+     - Recipes containing more than one part should be used for combination operations only
+     - Combination operations need to list the parts in the same order as they are listed in the requires_pcs element of the operation definition
 	"""
 	BEARING_BLOCK = [
 						MachineTask([pieces.BLOCK], [set()], set(Operations.PROCURE)),
@@ -231,9 +235,9 @@ class MachineTask(UObject):
     def __init__(self, pieces, req_attr, operations, timestamp=0.0):
         super(Task, self).__init__(o_type='TASK')
         self.timestamp = timestamp
-        self.pieces = pieces
-        self.req_attr = req_attr
-        self.operations = operations
+        self.pieces = pieces # list
+        self.req_attr = req_attr # list of sets
+        self.operations = operations # set 
     
     def __str__(self):
         return 'Task {}: {} on {} to {}'.format(self.uid,
