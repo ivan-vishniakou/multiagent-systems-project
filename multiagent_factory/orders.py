@@ -37,7 +37,7 @@ class BEARING_BLOCK(Order):
 	task_list = [
 		MachineTask([Pieces.BLOCK], [set()], set([Operations.PROCURE])),
 		MachineTask([Pieces.BLOCK], [set()], set([Operations.DRILL_BIG,Operations.DRILL_FINE])),
-		MachineTask([Pieces.BLOCK], [set([Attributes.BIG_DRILLED, Attributes.FINE_DRILLED])], set(Operations.DELIVER))
+		MachineTask([Pieces.BLOCK], [set([Attributes.BIG_DRILLED, Attributes.FINE_DRILLED])], set([Operations.DELIVER]))
 		]
 
 class COATED_BEARING_BLOCK(Order):
@@ -45,7 +45,7 @@ class COATED_BEARING_BLOCK(Order):
 	task_list = [
 		MachineTask([Pieces.BLOCK], [set()], set([Operations.PROCURE])),
 		MachineTask([Pieces.BLOCK], [set()], set([Operations.DRILL_BIG,Operations.DRILL_FINE])),
-		MachineTask([Pieces.BLOCK], [set([Attributes.BIG_DRILLED, Attributes.FINE_DRILLED, Attributes.COATED])], set(Operations.DELIVER))
+		MachineTask([Pieces.BLOCK], [set([Attributes.BIG_DRILLED, Attributes.FINE_DRILLED, Attributes.COATED])], set([Operations.DELIVER]))
 		]
 
 class BEARING_BLOCK_ASSY(Order):
@@ -56,8 +56,8 @@ class BEARING_BLOCK_ASSY(Order):
 		MachineTask([Pieces.BEARING], [set()], set([Operations.PROCURE])),
 		MachineTask([Pieces.BEARING], [set()], set([Operations.ROLL])),
 		MachineTask([Pieces.ASSY_TRAY], [set()], set([Operations.PROCURE])),
-		MachineTask([Pieces.BLOCK, Pieces.BEARING,Pieces.ASSY_TRAY], [set([Attributes.BIG_DRILLED, Attributes.FINE_DRILLED]), set(Attributes.ROLLED),set()], set(Operations.FORCE_FIT)),
-		MachineTask([Pieces.BEARING_BLOCK_ASSY], [set([Attributes.FINE_DRILLED, Attributes.ROLLED])], set(Operations.DELIVER))
+		MachineTask([Pieces.BLOCK, Pieces.BEARING,Pieces.ASSY_TRAY], [set([Attributes.BIG_DRILLED, Attributes.FINE_DRILLED]), set([Attributes.ROLLED]),set()], set([Operations.FORCE_FIT])),
+		MachineTask([Pieces.BEARING_BLOCK_ASSY], [set([Attributes.FINE_DRILLED, Attributes.ROLLED])], set([Operations.DELIVER]))
 		]
 
 class COATED_BEARING_BLOCK_ASSY():
@@ -65,10 +65,10 @@ class COATED_BEARING_BLOCK_ASSY():
 	task_list = [
 		MachineTask([Pieces.BLOCK], [set()], set([Operations.PROCURE])),
 		MachineTask([Pieces.BLOCK], [set()], set([Operations.DRILL_BIG, Operations.DRILL_FINE])),
-		MachineTask([Pieces.BLOCK], [set([Attributes.BIG_DRILLED, Attributes.FINE_DRILLED])], set(Operations.COAT)),
-		MachineTask([Pieces.BEARING], [set()], set(Operations.PROCURE)),
-		MachineTask([Pieces.BEARING], [set()], set(Operations.ROLL)),
-		MachineTask([Pieces.ASSY_TRAY], [set()], set(Operations.PROCURE)),
-		MachineTask([Pieces.BLOCK, Pieces.BEARING,Pieces.ASSY_TRAY], [set([Attributes.BIG_DRILLED, Attributes.FINE_DRILLED]), set(Attributes.ROLLED),set()], set(Operations.FORCE_FIT)),
-		MachineTask([Pieces.BEARING_BLOCK_ASSY], [set([Attributes.FINE_DRILLED, Attributes.ROLLED])], set(Operations.DELIVER))
+		MachineTask([Pieces.BLOCK], [set([Attributes.BIG_DRILLED, Attributes.FINE_DRILLED])], set([Operations.COAT])),
+		MachineTask([Pieces.BEARING], [set()], set([Operations.PROCURE])),
+		MachineTask([Pieces.BEARING], [set()], set([Operations.ROLL])),
+		MachineTask([Pieces.ASSY_TRAY], [set()], set([Operations.PROCURE])),
+		MachineTask([Pieces.BLOCK, Pieces.BEARING,Pieces.ASSY_TRAY], [set([Attributes.BIG_DRILLED, Attributes.FINE_DRILLED]), set([Attributes.ROLLED]),set()], set([Operations.FORCE_FIT])),
+		MachineTask([Pieces.BEARING_BLOCK_ASSY], [set([Attributes.FINE_DRILLED, Attributes.ROLLED])], set([Operations.DELIVER]))
 		]

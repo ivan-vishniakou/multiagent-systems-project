@@ -43,25 +43,25 @@ class AssemblyTray(Piece):
 	def __init__(self, owner):
 		super(AssemblyTray, self).__init__(owner = owner,
 									piece_type = Pieces.ASSY_TRAY,
-									attributes = [])
+									attributes = set())
 
 class Block(Piece):
 	"""Class representing a non-consumable assembly tool in the factory"""
 	def __init__(self, owner):
 		super(Block, self).__init__(owner = owner,
 									piece_type = Pieces.BLOCK,
-									attributes = [])
+									attributes = set())
 
 class Bearing(Piece):
 	"""Class representing a non-consumable assembly tool in the factory"""
 	def __init__(self, owner):
 		super(Bearing, self).__init__(owner = owner,
 									piece_type = Pieces.Bearing,
-									attributes = [])
+									attributes = set())
 
 class BearingBlockAssy(Piece):
 	"""Class representing a non-consumable assembly tool in the factory"""
 	def __init__(self, owner):
 		super(BearingBlockAssy, self).__init__(owner = owner,
 									piece_type = Pieces.BEARING_BLOCK_ASSY,
-									attributes = [])
+									attributes = set())

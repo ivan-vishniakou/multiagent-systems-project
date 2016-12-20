@@ -38,7 +38,7 @@ class Transporter(Agent):
 
 	def __init__(self, factory, pos=[0,0]):
 		super(Transporter, self).__init__(factory, o_type='TRANSPORTER', pos=pos)
-		#self._busy = False
+		self._busy = False
 		self._progress = 0.0
 		self._move_goal = None
 		self._task = None
@@ -140,6 +140,9 @@ class Machine(Agent):
 	def tick(self, dt=1):
 		"""Time tick for the machine: increases progress if there is an
 		item in work, """
+		# instead of a look-ahead, always choose 1 task in advance
+		if len(self._tasks) < 1:
+			self._select_task()
 		if self._current_task is None:
 			if len(self._tasks)>0:
 				self._start_task()
@@ -149,11 +152,7 @@ class Machine(Agent):
 				self._progress = 0.0
 			else:
 				self._progress += self.productivity*dt
-			pass
-		# instead of a look-ahead, always choose 1 task in advance
-		if len(self._tasks) < 1:
-			self._select_task()
-
+			
 	def _perform_operation(self):
 		operation = self._current_task.operation[0]
 		for i in range(len(task.pieces)):
@@ -200,20 +199,24 @@ class Machine(Agent):
 
 	# select the oldest task that the machine is able to do
 	def _select_task(self):
-		doable = set()
-		fulfillable = set()
+		
+		doable = []
+		fulfillable = []
 
 		for task in self._factory.machine_tasks:
 			for operation in task.operations:
 				if operation in self.operations:
-					doable.add(task)
+					doable.append(task)
+					
+					#TODO - remove following debug line
+					print '{}: doable add'.format(self.__str__())
 		if len(doable)>0:
 			for task in doable:
 				pcs_available = True
 				reserved_pcs = []
 				# see if enough pieces exist with required attributes
-				for i in range(len(task.pieces)):
-					suiting_pieces = self._factory.find_piece_with_attr(task.pieces[i],task.req_attr[i])
+				for i, piece_type in enumerate(task.pieces):
+					suiting_pieces = self._find_suiting_pieces(piece_type,task.req_attr[i])
 					if len(suiting_pieces)>0:
 						# temporarily reserve piece to account for processes that require multiple of same type
 						suiting_pieces[0].reserved = True
@@ -227,20 +230,26 @@ class Machine(Agent):
 						pc.reserved = False
 				if pcs_available == True:
 					fulfillable.append(task)
+					
+					#TODO - remove following debug line
+					print '{}: fulfillable add'.format(self.__str__())
+		else:
+			return
 		selected_task = None
 		selected_pcs = []
 		if len(fulfillable)>0:
 			selected_task = fulfillable[0]
-			for task in fullfillable: # pick oldest task
+			for task in fulfillable: # pick oldest task
 				if (task.timestamp < selected_task.timestamp):
 					selected_task = task
 			# TODO - implement piece-choosing heuristic
-			for i in range(len(task.pieces)): # reserve matching pcs randomly
-				suiting_pieces = self._factory.find_piece_with_attr(task.piece_types[i],task.req_attr[i])
-				piece = random.choice(suiting_pieces)
-				piece.reserved = True
-				selected_pcs.append(piece)
-				self._factory.transport_tasks.append(TransportTask(piece, self, _factory.time)) # create transport tasks for all the reserved pieces
+			for i, piece in enumerate(task.pieces):
+				suiting_pieces = self._factory.find_piece_with_attr(piece,task.req_attr[i])
+				if len(suiting_pieces) > 0:
+					selected_piece = random.choice(suiting_pieces)
+					selected_piece.reserved = True
+					selected_pcs.append(selected_piece)
+				self._factory.transport_tasks.add(TransportTask(piece, self, self._factory.time)) # create transport tasks for all the reserved pieces
 			if len(task.operations)>1: # task may contain multiple operations - select one the machine is capable of and modify task
 				for op in selected_task.operations:
 					if op in self.operations:
@@ -260,6 +269,11 @@ class Machine(Agent):
 			else:
 				self._tasks.add(task)
 				self._factory.tasks.remove(task)
+		else:
+			return
+
+	def _find_suiting_pieces(self, piece_type, attrs):
+		return self._factory.find_piece_with_attr(piece_type,attrs)
 
 	def does_operation(self, operation):
 		return self.operation == operation
@@ -312,9 +326,18 @@ class Stock(Machine):
 				self._progress += self.productivity*dt
 			pass
 	'''
+	
+	def _find_suiting_pieces(self, piece_type, attrs):
+		pcs = []
+		for pc in self.input:
+			#print '({},{})   ({},{})'.format(pc.piece_type,piece_type,pc.attributes,attrs)
+			if ((pc.piece_type == piece_type) and (pc.attributes == attrs)):
+				pcs.append(pc) 
+		print pcs
+		return pcs
+		
 	def add_to_stock(self, piece):
 		piece.owner = self
-		piece.reserved = True
 		self.input.append(piece)
 
 class Delivery(Machine):
