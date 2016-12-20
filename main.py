@@ -12,22 +12,40 @@ Created on Tue Oct 25 14:55:08 2016
 # TODO - replace machines with actions in tasks so that machines in the end could do/choose multiple operations, say if a machine could drill large or small holes.
 # TODO - add hooks for performance visualizer
 # TODO - add recipe/operation checker 
+# TODO - Mod stock and delivery to be defined just like other machines
+# TODO - clean up __str__ functions. Most are outdated
+# TODO - remove mass commeting
 
-from visualizer import FactoryVisualizer
+from factory_visualizer import FactoryVisualizer
 from activity_visualizer import ActivityVisualizer
-from multiagent_factory.factory import Factory
-import multiagent_factory.recipes as recipes
-
+from multiagent_factory.factory import *
+from multiagent_factory.orders import *
+from multiagent_factory import *
+from multiagent_factory import *
+ 
 def main():
-    """entry point to run the factory sim and visualizer"""
-    f = Factory()
-    fv = FactoryVisualizer(f)
-    '''
-    for _ in range(2):
-        f.order_product(recipes.COATED_BEARING_BOX, 
-						issue=[['block']])
-    '''
-    fv.run()
+	f = Factory()
+	
+	s = Stock(f, pos=(1,5))
+	f.add_agent(s)
+	f.add_agent(BigDrill(f, pos=(5,10)))
+	f.add_agent(FineDrill(f, pos=(15,10)))
+	f.add_agent(Coat(f, pos=(5,20)))
+	f.add_agent(Press(f, pos=(15,20)))
+	f.add_agent(Delivery(f, pos=(20,5)))
+	
+	for i in range(3):
+		f.add_agent(Transporter(f,pos=(10, 2 * (i+2))))
+	
+	for _ in range(5):
+		s.add_to_stock(Block(s))
+	
+	for _ in range(3):
+		f.order_product(BEARING_BLOCK())
+	
+	fv = FactoryVisualizer(f)
+
+	fv.run()
 
 if __name__ == "__main__":
-    main()
+	main()

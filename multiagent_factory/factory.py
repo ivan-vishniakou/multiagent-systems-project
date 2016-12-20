@@ -6,8 +6,6 @@ Created on Tue Oct 25 14:49:42 2016
 """
 from agents import *
 from base import *
-import recipes
-
 
 class Factory(object):
         
@@ -22,44 +20,14 @@ class Factory(object):
         
         #create agents:
         self.size = (30,30)
-        self.agents.append(Stock(self, [recipes.BLOCK,
-										recipes.BLOCK,
-										recipes.BLOCK,
-										recipes.BLOCK,
-										recipes.BLOCK
-										], pos=(5,5)))
-        self.agents.append(Delivery(self, pos=(20,5)))
-        '''
-        self.agents.append(Machine(self,
-                                   operation=Factory.ASSEMBLY_MACHINE, 
-                                   requires = ['assembly_tray'],
-                                   removes = ['fine_drilled', 'big_drilled' ,'rolled', 'colored'],
-                                   adds = ['final_product'],
-                                   pos = (9,9)))
-        '''
-        self.agents.append(Machine(self,
-                                   operation=COATING_MACHINE,
-                                   requires = [],
-                                   removes = [],
-                                   adds = ['coated'],
-                                   pos = (10,20)))
-        self.agents.append(Machine(self,
-                                   operation=FINE_DRILLING_MACHINE,
-                                   requires = [],
-                                   removes = [],
-                                   adds = ['fine_drilled'],
-                                   pos = (8,10)))
-        self.agents.append(Machine(self,
-                                   operation=BIG_DRILLING_MACHINE,
-                                   requires = [],
-                                   removes = [],
-                                   adds = ['big_drilled'],
-                                   pos = (12,11)))
-        
-        for _ in range(5): self.agents.append(Transporter(self, pos=[10, 10]))
-        #self.agents.append(Transporter(self, pos=[10, 20]))
-        #self.agents.append(Transporter(self, pos=[10, 30]))
+
         print 'factory sim created'
+        
+        
+        
+    def add_agent(self, agent):
+        self.agents.add(agent)
+    
     
     def tick(self):
         self.time += self.time_step
@@ -67,15 +35,11 @@ class Factory(object):
             a.tick()
         pass    
     
-    def order_product(self, recipe, issue):
+    def order_product(self, order):
         """Places tasks onto machine_task list to manufacture a product"""
-        new_tasks = []
-        for issue_type, attr, op in recipe:
-            task = Task(issue_type, attr, op, timestamp=self.time)
-            new_tasks.append(task)
-            print '{}: {}, {}'.format(issue_type, attr, op)
-
-        self.tasks.extend(new_tasks)
+        for task in order.task_list:
+            self.machine_tasks.add(task)
+            print '{}: {}, {}'.format(task.pieces, task.req_attr, task.operations)
         
         '''
         The issuing should be viewed as a normal task that is added to the task list
