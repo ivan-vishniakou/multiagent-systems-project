@@ -85,7 +85,7 @@ class Transporter(Agent):
 	def _select_task(self):
 		if len(self._factory.transport_tasks) > 0:
 			self._current_task = self._factory.transport_tasks.pop(0)
-			self._move_goal = self._current_task.piece.pos
+			self._move_goal = self._current_task.piece.owner.pos
 
 	def tick(self, dt=1):
 		if self._current_task is None:
@@ -148,14 +148,14 @@ class Machine(Agent):
 				self._start_task()
 		else:
 			if self._progress>1.0:
-				self._perform_operation
+				self._perform_operation()
 				self._progress = 0.0
 			else:
 				self._progress += self.productivity*dt
 			
 	def _perform_operation(self):
-		operation = self._current_task.operation[0]
-		for i in range(len(task.pieces)):
+		operation = self._current_task.operations
+		for i in range(len(operation.pieces)):
 			self._worktable[i].attributes.add(operation.adds_attr[i])
 			self._worktable[i].attributes.remove(operation.removes_attr[i])
 		if len(requires_pcs) > 0: # combination procedure
@@ -178,22 +178,22 @@ class Machine(Agent):
 
 	def _start_task(self):
 		"""Look for pieces in input and if there, put in worktable"""
-		for task in self._tasks:
-			for i, piece in enumerate(task.pieces):
+		for t, task in enumerate(self._tasks):
+			for i, piece_type in enumerate(task.pieces):
 				found_piece = False
-				for piece in self.input:
-					if ((piece.piece_type is piece) and
+				for j, piece in enumerate(self.input):
+					if ((piece_type == piece.piece_type) and
 							(task.req_attr[i] == piece.attributes)):
 						found_piece = True
 						# piece list is in order of task/recipe
-						self._table.append(self.input.pop(piece))
+						self._table.append(self.input.pop(j))
 						break
 				if found_piece == False:
 					self.input.append(self._table) # return all pieces
 					self._table = []
 					break
 			if found_piece == True:
-				self._current_task = self._tasks.pop(task)
+				self._current_task = self._tasks.pop(t)
 				print '{} started task {}'.format(self, self._current_task)
 				break
 
@@ -249,7 +249,7 @@ class Machine(Agent):
 					selected_piece = random.choice(suiting_pieces)
 					selected_piece.reserved = True
 					selected_pcs.append(selected_piece)
-				self._factory.transport_tasks.add(TransportTask(piece, self, self._factory.time)) # create transport tasks for all the reserved pieces
+					self._factory.transport_tasks.add(TransportTask(selected_piece, self, self._factory.time)) # create transport tasks for all the reserved pieces
 			if len(task.operations)>1: # task may contain multiple operations - select one the machine is capable of and modify task
 				for op in selected_task.operations:
 					if op in self.operations:
@@ -267,8 +267,8 @@ class Machine(Agent):
 						print '{} operation not valid for type {}'.format(operation.name,selected_task.pieces[i])
 				selected_task.operations.remove(operation)
 			else:
-				self._tasks.add(task)
-				self._factory.tasks.remove(task)
+				self._tasks.append(task)
+				self._factory.machine_tasks.remove(task)
 		else:
 			return
 
@@ -281,8 +281,6 @@ class Machine(Agent):
 	def production_time(self):
 		return 1.0/self.productivity
 
-	def __str__(self):
-		return '{}:{}'.format(self.agent_type, str(self.uid).zfill(2))
 
 class Stock(Machine):
 	def __init__(self, factory, pos, name=''):
@@ -290,7 +288,7 @@ class Stock(Machine):
 									agent_type = Agents.STOCK_MACHINE,
 									operations = Operations.PROCURE,
 									pos=pos,
-									productivity = 0.005,
+									productivity = 0.05,
 									name=name)
 	'''
 	def __init__(self, factory, initial_stock, pos, name=''):

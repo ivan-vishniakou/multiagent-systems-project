@@ -8,6 +8,7 @@ Created on Tue Oct 25 14:55:08 2016
 # TODO - add recipe/operation checker 
 # TODO - clean up __str__ functions. Most are outdated
 # TODO - remove mass commenting
+# TODO - add functionality for dealing with out-of-stock situations ?
 
 from factory_visualizer import FactoryVisualizer
 from activity_visualizer import ActivityVisualizer

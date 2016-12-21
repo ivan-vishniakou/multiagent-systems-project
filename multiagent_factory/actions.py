@@ -6,41 +6,37 @@ Created on Tue Oct 25 14:56:02 2016
 """
 
 from base import *
-from pieces import *    
+from pieces import *
 
-class MachineTask(UObject):
+class Tasks():
+	MACHINETASK = 'MACHINETASK'
+	TRANSPORTTASK = 'TRANSPORTTASK'
+	
+class Task(UObject):
+	def __init__(self, o_type=UObjects.TASK, timestamp=0.0):
+		super(Task, self).__init__(o_type=UObjects.TASK)
+
+class MachineTask(Task):
 	"""Class representing a task performed by a mobile robot.
 	Contains attributes of a part and operation type to perform
 	on a matching part."""
 
 	def __init__(self, pieces, req_attr, operations, timestamp=0.0):
-		super(MachineTask, self).__init__(o_type=UObjects.TASK)
+		super(MachineTask, self).__init__(o_type=Tasks.MACHINETASK, timestamp=0.0)
 		self.timestamp = timestamp
 		self.pieces = pieces # list
 		self.req_attr = req_attr # list of sets
 		self.operations = operations # set
 
-	def __str__(self):
-		return 'Task {}: {} on {} to {}'.format(self.uid,
-										  self.attributes,
-										  self.piece_type,
-										  self.operation)
-
 	def __repr__(self):
 		return self.__str__()
 
-class TransportTask(UObject):
-	def __init__(self, piece, dest_machine, timestamp):
-		super(TransportTask, self).__init__(o_type=UObjects.TASK)
+class TransportTask(Task):
+	def __init__(self, piece, dest_machine, timestamp=0.0):
+		super(TransportTask, self).__init__(o_type=Tasks.TRANSPORTTASK, timestamp=0.0)
 		self.timestamp = timestamp
 		self.piece = piece
 		self.dest_machine = dest_machine
-
-	def __str__(self):
-		return 'Task {}: {} on {} to {}'.format(self.uid,
-										  self.attributes,
-										  self.piece_type,
-										  self.operation)
 
 	def __repr__(self):
 		return self.__str__()
@@ -69,57 +65,50 @@ class Operation():
 		self.requires_attr = requires_attr	# list of set of attributes required for operation
 
 class Procure(Operation):
-	@staticmethod
 	def __init__(self):
-		super(Procure, self).__init__(Operation.PROCURE,
+		super(Procure, self).__init__(Operations.PROCURE,
 		[Pieces.BLOCK, Pieces.BEARING, Pieces.ASSY_TRAY],
 		[], [],
 		[set()], [set()], [set()])
 
 class Deliver(Operation):
-	@staticmethod
 	def __init__(self):
-		super(Deliver, self).__init__(Operation.DELIVER,
+		super(Deliver, self).__init__(Operations.DELIVER,
 		[Pieces.BLOCK, Pieces.BEARING, Pieces.ASSY],
 		[], [],
 		[set()], [set()], [set()])
 
 class Roll(Operation):
-	@staticmethod
 	def __init__(self):
-		super(Roll, self).__init__(Operation.ROLL,
+		super(Roll, self).__init__(Operations.ROLL,
 		[Pieces.BEARING],
 		[], [],
 		[[Attributes.ROLLED]], [set()], [set()])
 
 class DRILL_BIG(Operation):
-	@staticmethod
 	def __init__(self):
-		super(DRILL_BIG, self).__init__(Operation.DRILL_BIG,
+		super(DRILL_BIG, self).__init__(Operations.DRILL_BIG,
 		[Pieces.BLOCK],
 		[], [],
 		[set(Attributes.BIG_DRILLED)], [set()], [set()])
 
 class DRILL_FINE(Operation):
-	@staticmethod
 	def __init__(self):
-		super(DRILL_FINE, self).__init__(Operation.DRILL_FINE,
+		super(DRILL_FINE, self).__init__(Operations.DRILL_FINE,
 		[Pieces.BLOCK],
 		[], [],
 		[set(Attributes.FINE_DRILLED)], [set()], [set()],)
 
 class COAT(Operation):
-	@staticmethod
 	def __init__(self):
-		super(COAT, self).__init__(Operation.COAT,
+		super(COAT, self).__init__(Operations.COAT,
 		[Pieces.BLOCK],
 		[], [],
 		[set(Attributes.COATED)], [set()], [set()] )
 
 class FORCE_FIT(Operation):
-	@staticmethod
 	def __init__(self):
-		super(FORCE_FIT, self).__init__(Operation.FORCE_FIT,
+		super(FORCE_FIT, self).__init__(Operations.FORCE_FIT,
 		[],
 		[Pieces.BLOCK, Pieces.BEARING, Pieces.ASSY_TRAY], [[0, 1],Pieces.BEARING_BLOCK_ASSY],
 		[set(),set(),set()], [set(Attributes.BIG_DRILLED),set(),set()], [set(Attributes.BIG_DRILLED),set(),set()] )

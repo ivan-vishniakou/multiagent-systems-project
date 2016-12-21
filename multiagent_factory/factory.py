@@ -14,7 +14,7 @@ class Factory(object):
         self.agents = set()
         self.pieces = set()
         self.machine_tasks = set()
-        self.transport_tasks = set()
+        self.transport_tasks = []
         self.time_step = 0.1
         
         
