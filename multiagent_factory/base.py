@@ -11,6 +11,7 @@ class UObjects():
 	MACHINE = 'MACHINE'
 	PIECE = 'PIECE'
 	TASK = 'TASK'
+	ORDER = 'ORDER'
 
 class UObject(object):
 	"""Base class for objects in the simulation providing unique ids."""
@@ -26,7 +27,7 @@ class UObject(object):
 		self.o_type = o_type
 
 	def __str__(self):
-		return '{}[#{}]'.format(self.o_type, str(self.uid).zfill(2))
+		return '{}[#{}]'.format(self.o_type, str(self.uid).zfill(3))
 
 	def __repr__(self):
 		return self.__str__()

@@ -30,6 +30,10 @@ class MachineTask(Task):
 
 	def __repr__(self):
 		return self.__str__()
+		
+	def __str__(self):
+		return '{}[#{}]: {} on {}'.format(self.o_type, str(self.uid).zfill(3), [op.name for op in self.operations], self.pieces)
+
 
 class TransportTask(Task):
 	def __init__(self, piece, dest_machine, timestamp=0.0):
@@ -40,6 +44,9 @@ class TransportTask(Task):
 
 	def __repr__(self):
 		return self.__str__()
+		
+	def __str__(self):
+		return '{}[#{}]: transport {} to {}'.format(self.o_type, str(self.uid).zfill(3), self.piece.piece_type, self.dest_machine)
 
 class Operations():
 	"""Class listing the available operations"""
@@ -51,8 +58,7 @@ class Operations():
 	COAT = 'COAT'
 	FORCE_FIT = 'FORCE_FIT'
 
-class Operation():
-
+class Operation(object):
 	def __init__(self, name, accepts_pcs, requires_pcs, combines_pcs, adds_attr, removes_attr, requires_attr):
 		self.name = name 					# Name of operation
 
@@ -74,7 +80,7 @@ class Procure(Operation):
 class Deliver(Operation):
 	def __init__(self):
 		super(Deliver, self).__init__(Operations.DELIVER,
-		[Pieces.BLOCK, Pieces.BEARING, Pieces.ASSY],
+		[Pieces.BLOCK, Pieces.BEARING, Pieces.BEARING_BLOCK_ASSY],
 		[], [],
 		[set()], [set()], [set()])
 
@@ -83,33 +89,33 @@ class Roll(Operation):
 		super(Roll, self).__init__(Operations.ROLL,
 		[Pieces.BEARING],
 		[], [],
-		[[Attributes.ROLLED]], [set()], [set()])
+		[set([Attributes.ROLLED])], [set()], [set()])
 
-class DRILL_BIG(Operation):
+class DrillBig(Operation):
 	def __init__(self):
-		super(DRILL_BIG, self).__init__(Operations.DRILL_BIG,
+		super(DrillBig, self).__init__(Operations.DRILL_BIG,
 		[Pieces.BLOCK],
 		[], [],
-		[set(Attributes.BIG_DRILLED)], [set()], [set()])
+		[set([Attributes.BIG_DRILLED])], [set()], [set()])
 
-class DRILL_FINE(Operation):
+class DrillFine(Operation):
 	def __init__(self):
-		super(DRILL_FINE, self).__init__(Operations.DRILL_FINE,
+		super(DrillFine, self).__init__(Operations.DRILL_FINE,
 		[Pieces.BLOCK],
 		[], [],
-		[set(Attributes.FINE_DRILLED)], [set()], [set()],)
+		[set([Attributes.FINE_DRILLED])], [set()], [set()],)
 
-class COAT(Operation):
+class Coat(Operation):
 	def __init__(self):
-		super(COAT, self).__init__(Operations.COAT,
+		super(Coat, self).__init__(Operations.COAT,
 		[Pieces.BLOCK],
 		[], [],
-		[set(Attributes.COATED)], [set()], [set()] )
+		[set([Attributes.COATED])], [set()], [set()] )
 
-class FORCE_FIT(Operation):
+class ForceFit(Operation):
 	def __init__(self):
-		super(FORCE_FIT, self).__init__(Operations.FORCE_FIT,
+		super(ForceFit, self).__init__(Operations.FORCE_FIT,
 		[],
 		[Pieces.BLOCK, Pieces.BEARING, Pieces.ASSY_TRAY], [[0, 1],Pieces.BEARING_BLOCK_ASSY],
-		[set(),set(),set()], [set(Attributes.BIG_DRILLED),set(),set()], [set(Attributes.BIG_DRILLED),set(),set()] )
+		[set(),set(),set()], [set([Attributes.BIG_DRILLED]),set(),set()], [set([Attributes.BIG_DRILLED]),set(),set()] )
 
