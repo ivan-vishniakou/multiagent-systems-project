@@ -7,7 +7,6 @@ Created on Tue Oct 25 14:56:02 2016
 
 from base import *
 
-
 class Pieces():
 	"""Class listing the available piece types"""
 	BLOCK = 'block'
@@ -21,6 +20,7 @@ class Attributes():
 	BIG_DRILLED = 'big_drilled'
 	FINE_DRILLED = 'fine_drilled'
 	COATED = 'coated'
+	NONCONSUMABLE = 'nonconsumable'
     
 class Piece(PhysicalObject):
 
@@ -43,7 +43,7 @@ class AssemblyTray(Piece):
 	def __init__(self, owner):
 		super(AssemblyTray, self).__init__(owner = owner,
 									piece_type = Pieces.ASSY_TRAY,
-									attributes = set())
+									attributes = set([Attributes.NONCONSUMABLE]))
 
 class Block(Piece):
 	"""Class representing a non-consumable assembly tool in the factory"""
@@ -56,7 +56,7 @@ class Bearing(Piece):
 	"""Class representing a non-consumable assembly tool in the factory"""
 	def __init__(self, owner):
 		super(Bearing, self).__init__(owner = owner,
-									piece_type = Pieces.Bearing,
+									piece_type = Pieces.BEARING,
 									attributes = set())
 
 class BearingBlockAssy(Piece):

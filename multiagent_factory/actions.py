@@ -32,8 +32,7 @@ class MachineTask(Task):
 		return self.__str__()
 		
 	def __str__(self):
-		return '{}[#{}]: {} on {}'.format(self.o_type, str(self.uid).zfill(3), [op.name for op in self.operations], self.pieces)
-
+		return '{}[#{}]: {} on {} with {}'.format(self.o_type, str(self.uid).zfill(3), [op.name for op in self.operations], self.pieces, self.req_attr)
 
 class TransportTask(Task):
 	def __init__(self, piece, dest_machine, timestamp=0.0):
@@ -63,9 +62,9 @@ class Operation(object):
 		self.name = name 					# Name of operation
 
 		self.accepts_pcs = accepts_pcs		# set of accepted components
-		self.requires_pcs = requires_pcs	# list of pcs required for operation - if populated, accepts_pcs is ignored
-		self.combines_pcs = combines_pcs    # list of set and piece: destroyed indexes of requires_pcs and created pc
-
+		self.requires_pcs = requires_pcs	# list of pcs required for operation - if supplied, accepts_pcs is ignored
+		self.combines_pcs = combines_pcs    # list of set and piece: indexes of requires_pcs destroyed and created pc
+        # if required_pcs supplied, the following lists' item order corresponds to the order in required_pcs
 		self.adds_attr = adds_attr 			# list of set of attributes added to pcs
 		self.removes_attr = removes_attr 	# list of set of attributes removed from pcs
 		self.requires_attr = requires_attr	# list of set of attributes required for operation
@@ -117,5 +116,5 @@ class ForceFit(Operation):
 		super(ForceFit, self).__init__(Operations.FORCE_FIT,
 		[],
 		[Pieces.BLOCK, Pieces.BEARING, Pieces.ASSY_TRAY], [[0, 1],Pieces.BEARING_BLOCK_ASSY],
-		[set(),set(),set()], [set([Attributes.BIG_DRILLED]),set(),set()], [set([Attributes.BIG_DRILLED]),set(),set()] )
+		[set(),set(),set()], [set([Attributes.BIG_DRILLED]),set(),set()], [set([Attributes.BIG_DRILLED]),set([Attributes.ROLLED]),set()] )
 

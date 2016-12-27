@@ -5,8 +5,6 @@ Created on Tue Oct 25 14:56:02 2016
 @author: ivan, ben, eugenia
 """
 
-#INFINITY = float('inf')
-
 class UObjects():
 	MACHINE = 'MACHINE'
 	PIECE = 'PIECE'
@@ -32,7 +30,6 @@ class UObject(object):
 	def __repr__(self):
 		return self.__str__()
 
-
 class PhysicalObject(UObject):
 	"""Adds position and attributes to UObject to describe physical
 	objects, like work pieces and agents.
@@ -55,6 +52,3 @@ class PhysicalObject(UObject):
 			if not attr in required:
 				return False
 		return True
-        
-	#def __str__(self):
-	#	return '{} {}'.format(self.o_type, str(self.uid).zfill(2))
