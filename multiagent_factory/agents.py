@@ -19,15 +19,18 @@ class Agents():
 	ROLLING_MACHINE = 'ROLLING_MACHINE'
 	BIG_DRILLING_MACHINE = 'BIG_DRILLING_MACHINE'
 	FINE_DRILLING_MACHINE = 'FINE_DRILLING_MACHINE'
+	OMNI_DRILLING_MACHINE = 'OMNI_DRILLING_MACHINE'
 	ROLLING_MACHINE = 'ROLLING_MACHINE'
 	COATING_MACHINE = 'COATING_MACHINE'
 	PRESS_MACHINE = 'PRESS_MACHINE'
+	TRANSPORTER = 'TRANSPORTER'
 
 class Agent(PhysicalObject):
 	"""Base class for agents in the factory"""
 
-	def __init__(self, factory, pos = [0, 0], o_type = 'AGENT'):
+	def __init__(self, factory, pos = [0, 0], o_type = 'AGENT', agent_type = ''):
 		super(Agent, self).__init__(o_type = o_type, pos=pos)
+		self.agent_type = agent_type
 		self.progress = 0.0
 		self._factory = factory
 		self._last_busy = False
@@ -39,16 +42,21 @@ class Agent(PhysicalObject):
 		pass
 		
 	def visualize_activity(self):
+		"""Update the visualizer on busy status"""
 		if self._busy is not self._last_busy:
 			self._last_busy = self._busy
 			self._factory.activity_visualizer.update( 
 			{str(self.o_type) + "_" + str(self.uid):self._busy})
+
+	def __str__(self):
+		return '{}[#{}]'.format(self.agent_type, str(self.uid).zfill(3))
         
 class Transporter(Agent):
+	"""Agent that chooses machine-generated transport tasks to complete"""
 
 	def __init__(self, factory, pos=[0,0]):
-		super(Transporter, self).__init__(factory, o_type='TRANSPORTER', 
-		pos=pos)
+		super(Transporter, self).__init__(factory, o_type='AGENT', 
+		agent_type = Agents.TRANSPORTER, pos=pos)
 		self._busy = False
 		self._progress = 0.0
 		self._move_goal = None
@@ -57,13 +65,15 @@ class Transporter(Agent):
 		self._max_vel = .1
 
 	def _pick_piece(self, piece):
+		"""Takes piece from machine output"""
 		self._current_task.piece.owner = self
 		self._carried_piece = self._current_task.piece
 		self._move_goal = self._current_task.dest_machine.pos
 
 	def _drop_piece(self):
+		"""Puts piece into machine input"""
 		piece = self._carried_piece
-		print '\n{} finished {} '.format(self, self._current_task)
+		print ('{} finished {}').format(self, self._current_task)
 		piece.owner = None
 		self._current_task.dest_machine.input_piece(piece)
 		self._carried_piece = None
@@ -72,6 +82,7 @@ class Transporter(Agent):
 		self._busy = False
 
 	def _move_to_goal(self):
+		"""Moves transporter through factory"""
 		if self._move_goal is None:
 			return
 		else:
@@ -92,6 +103,7 @@ class Transporter(Agent):
 				abs(self._move_goal[1]-self.pos[1]) )<0.1*self._max_vel
 
 	def _select_task(self):
+		"""Chooses the oldest task to complete"""
 		if len(self._factory.transport_tasks) > 0:
 			self._current_task = min(self._factory.transport_tasks, key=attrgetter('timestamp'))
 			self._busy = True
@@ -100,6 +112,7 @@ class Transporter(Agent):
 			self._prim_axis = random.choice([1,0])
 
 	def tick(self, dt=1):
+		"""Called by factory each timestep"""
 		if self._current_task is None:
 			self._select_task()
 		else:
@@ -131,16 +144,15 @@ class Machine(Agent):
 		self.input = []
 		self._worktable = []
 		self.output = []
-		
-	def __str__(self):
-		return '{}[#{}]'.format(self.agent_type, str(self.uid).zfill(3))
 
 	def input_piece(self, piece):
+		"""Allows pieces to be added to machine"""
 		piece.owner = self
 		piece.reserved = True
 		self.input.append(piece)
 
 	def output_piece(self, piece):
+		"""Allows pieces to be removed from machine"""
 		if piece in self.output:
 			self.output.remove(piece)
 			piece.owner = None
@@ -167,7 +179,8 @@ class Machine(Agent):
 				self._progress += self.productivity*dt
 
 	def _perform_operation(self):
-		print '\n{} finished {} '.format(self, self._current_task)
+		"""Apply all changes in the operation to pieces"""
+		print '{} finished {} '.format(self, self._current_task)
 		operation = self._current_task.operations.pop()
 		for i, piece in enumerate(self._current_task.pieces):
 			self._worktable[i].attributes = self._worktable[i].attributes.union(operation.adds_attr[i])
@@ -214,6 +227,7 @@ class Machine(Agent):
 				self._choose_fulfillable_task(fulfillable)
 
 	def _find_doable_tasks(self):
+		"""find tasks that have operations machine can do"""
 		doable = []
 		for task in self._factory.machine_tasks:
 			for operation in task.operations:
@@ -222,6 +236,7 @@ class Machine(Agent):
 		return doable
 
 	def _find_fulfillable_tasks(self, doable):
+		"""find tasks that have qualifying pieces available"""
 		fulfillable = []
 		for task in doable:
 			pcs_available = True
@@ -245,6 +260,7 @@ class Machine(Agent):
 		return fulfillable
 	
 	def _choose_fulfillable_task(self, fulfillable):
+		"""choose oldest task and go about getting needed pieces"""
 		selected_task = min(fulfillable, key=attrgetter('timestamp')) #oldest task
 		for i, piece in enumerate(selected_task.pieces):
 			suiting_pieces = self._factory.find_piece_with_attr(piece,selected_task.req_attr[i])
@@ -267,6 +283,7 @@ class Machine(Agent):
 			self._factory.machine_tasks.remove(selected_task)
 
 	def _clear_worktable(self):
+		"""put all pieces being worked on into output"""
 		for piece in self._worktable:
 			self.output.append(piece)
 			piece.reserved = False
@@ -275,6 +292,7 @@ class Machine(Agent):
 		self._busy = False
 
 	def _retrieve_piece(self, piece):
+		"""create a transport task or take from input"""
 		piece.reserved = True
 		if piece in self.output:
 			self.output.remove(piece)
@@ -282,7 +300,7 @@ class Machine(Agent):
 		else:
 			t_task = TransportTask(piece, self, self._factory.time)
 			self._factory.transport_tasks.add(t_task)
-			print '\n{} added'.format(t_task)
+			print '{} added {}'.format(self, t_task)
 
 	def _find_suiting_pieces(self, piece_type, attrs):
 		p = self._find_pieces_in_output(piece_type, attrs)
@@ -315,6 +333,8 @@ class StockMachine(Machine):
 									name=name)
 	
 	def _find_suiting_pieces(self, piece_type, attrs):
+		"""override stock machine function since the stock should not 
+		take from other machines"""
 		pcs = []
 		for pc in self.input:
 			if ((pc.piece_type == piece_type) and (pc.attributes == attrs)):
@@ -325,6 +345,7 @@ class StockMachine(Machine):
 		pass
 		
 	def add_to_stock(self, piece):
+		"""add piece to stock: 'delivery from outside' """
 		piece.owner = self
 		if Attributes.NONCONSUMABLE in piece.attributes:
 			self.output.append(piece)
@@ -343,12 +364,20 @@ class DeliveryMachine(Machine):
 									name=name)
 
 	def _clear_worktable(self):
+		"""override stock function so pieces aren't recirculated"""
 		for piece in self._worktable:
 			self.output.append(piece)
-			#piece.reserved = False
 		self._worktable = []
 		self._current_task = None
 
+class OmniDrillMachine(Machine):
+	def __init__(self, factory, pos, name=''):
+		super(BigDrillMachine, self).__init__(factory,
+									agent_type = Agents.OMNI_DRILLING_MACHINE,
+									operations=set([Operations.DRILL_BIG,Operations.DRILL_FINE]),
+									pos=pos,
+									productivity = 0.005,
+									name=name)
 class BigDrillMachine(Machine):
 	def __init__(self, factory, pos, name=''):
 		super(BigDrillMachine, self).__init__(factory,

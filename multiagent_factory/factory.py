@@ -45,6 +45,7 @@ class Factory(object):
 		return [self.agents[_] for _ in idx]
 
 	def find_piece_with_attr(self, pc_type, attributes):
+		"""returns list of pieces with the given attributes"""
 		found = []
 		for p in self.pieces:
 			if p.reserved:

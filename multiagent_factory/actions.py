@@ -22,7 +22,8 @@ class MachineTask(Task):
 	on a matching part."""
 
 	def __init__(self, pieces, req_attr, operations, timestamp=0.0):
-		super(MachineTask, self).__init__(o_type=Tasks.MACHINETASK, timestamp=0.0)
+		super(MachineTask, self).__init__(o_type=Tasks.MACHINETASK, 
+		timestamp=0.0)
 		self.timestamp = timestamp
 		self.pieces = pieces # list
 		self.req_attr = req_attr # list of sets
@@ -32,11 +33,14 @@ class MachineTask(Task):
 		return self.__str__()
 		
 	def __str__(self):
-		return '{}[#{}]: {} on {} with {}'.format(self.o_type, str(self.uid).zfill(3), [op.name for op in self.operations], self.pieces, self.req_attr)
+		return '{}[#{}]: {} on {} with {}'.format(self.o_type, 
+		str(self.uid).zfill(3), [op.name for op in self.operations], 
+		self.pieces, self.req_attr)
 
 class TransportTask(Task):
 	def __init__(self, piece, dest_machine, timestamp=0.0):
-		super(TransportTask, self).__init__(o_type=Tasks.TRANSPORTTASK, timestamp=0.0)
+		super(TransportTask, self).__init__(o_type=Tasks.TRANSPORTTASK, 
+		timestamp=0.0)
 		self.timestamp = timestamp
 		self.piece = piece
 		self.dest_machine = dest_machine
@@ -45,7 +49,9 @@ class TransportTask(Task):
 		return self.__str__()
 		
 	def __str__(self):
-		return '{}[#{}]: transport {} to {}'.format(self.o_type, str(self.uid).zfill(3), self.piece.piece_type, self.dest_machine)
+		return '{}[#{}]: transport {} to {}'.format(self.o_type, 
+		str(self.uid).zfill(3), self.piece.piece_type, 
+		self.dest_machine)
 
 class Operations():
 	"""Class listing the available operations"""
@@ -58,7 +64,9 @@ class Operations():
 	FORCE_FIT = 'FORCE_FIT'
 
 class Operation(object):
-	def __init__(self, name, accepts_pcs, requires_pcs, combines_pcs, adds_attr, removes_attr, requires_attr):
+	"""base class for defining an operation"""
+	def __init__(self, name, accepts_pcs, requires_pcs, combines_pcs, 
+	adds_attr, removes_attr, requires_attr):
 		self.name = name 					# Name of operation
 
 		self.accepts_pcs = accepts_pcs		# set of accepted components

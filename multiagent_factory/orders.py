@@ -11,8 +11,10 @@ from actions import *
 """
 Order creation rules
 	- Only combination operations should have more than one item per task
-	- If 2 parts of the same type are needed and one requires more attributes it should be listed first
-	- Combination operations need to list the parts in the same order as they are listed in the requires_pcs element of the operation definition
+	- If 2 parts of the same type are needed and one requires more 
+		attributes it should be listed first
+	- Combination operations need to list the parts in the same order 
+		as they are listed in the requires_pcs element of the operation definition
 """
 
 class Orders():
