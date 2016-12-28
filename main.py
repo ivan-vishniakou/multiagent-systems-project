@@ -4,7 +4,6 @@ Created on Tue Oct 25 14:55:08 2016
 
 @author: ivan, ben, eugenia
 """
-# TODO have delivery treat parts differently than putting them in an output
 # TODO add hooks for performance visualizer	
 # TODO add recipe/operation checker 
 # TODO clean up __str__ functions. Most are outdated
@@ -12,7 +11,7 @@ Created on Tue Oct 25 14:55:08 2016
 # TODO add functionality for dealing with out-of-stock situations ?
 
 from factory_visualizer import FactoryVisualizer
-from activity_visualizer import ActivityVisualizer
+from multiagent_factory.activity_visualizer import ActivityVisualizer
 from multiagent_factory.factory import *
 from multiagent_factory.orders import *
 from multiagent_factory.pieces import *

@@ -7,7 +7,8 @@ plt.ion()
 
 class ActivityVisualizer(object):
 	
-	def __init__(self):
+	def __init__(self, factory):
+		self._factory = factory
 		self.agent_record = {}
 		self.fig, self.ax = plt.subplots()
 		self.ax.set_title("Agent Activity")
@@ -34,23 +35,23 @@ class ActivityVisualizer(object):
 
 			
 		
-	def update(self, agent_states, t):
+	def update(self, agent_states):
 		for agent in agent_states:
 			if agent not in self.agent_record:
-				self.init_agent(agent,agent_states[agent],t)
+				self.init_agent(agent,agent_states[agent],self._factory.time)
 			else:
 				if agent_states[agent] != self.agent_record[agent]['state']:
 					self.agent_record[agent]['state'] = agent_states[agent]
 					if agent_states[agent]:
-						self.agent_record[agent]['start_times'] = np.append(self.agent_record[agent]['start_times'],t)
+						self.agent_record[agent]['start_times'] = np.append(self.agent_record[agent]['start_times'],self._factory.time)
 					else:
-						self.agent_record[agent]['stop_times'] = np.append(self.agent_record[agent]['stop_times'] , t)
+						self.agent_record[agent]['stop_times'] = np.append(self.agent_record[agent]['stop_times'] , self._factory.time)
 						self.ax.add_patch(patches.Rectangle(
 							(self.agent_record[agent]['start_times'][-1], float(self.agent_record[agent]['agent_num']) - 0.4), 
 							self.agent_record[agent]['stop_times'][-1] - self.agent_record[agent]['start_times'][-1], 
 							0.8,color=self.agent_record[agent]['color']))
 						self.ax.autoscale_view()
-						self.ticks[self.agent_record[agent]['agent_num']] = agent + ": " + str(int(100.0*float(sum(self.agent_record[agent]['stop_times']-self.agent_record[agent]['start_times'])/float(t)))) + "%"
+						self.ticks[self.agent_record[agent]['agent_num']] = agent + ": " + str(int(100.0*float(sum(self.agent_record[agent]['stop_times']-self.agent_record[agent]['start_times'])/float(self._factory.time)))) + "%"
 						self.ax.set_yticklabels(self.ticks)
 
 						plt.draw()
@@ -89,4 +90,4 @@ def test():
 				
 
 if __name__ == "__main__":
-    test()
+	test()

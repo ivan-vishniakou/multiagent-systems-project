@@ -61,7 +61,7 @@ class BEARING_BLOCK_ASSY(Order):
 				MachineTask([Pieces.BLOCK], [set()], set([DrillBig(), DrillFine()])),
 				MachineTask([Pieces.BEARING], [set()], set([Procure()])),
 				MachineTask([Pieces.BEARING], [set()], set([Roll()])),
-				MachineTask([Pieces.BLOCK, Pieces.BEARING,Pieces.ASSY_TRAY], [set([Attributes.BIG_DRILLED, Attributes.FINE_DRILLED]), set([Attributes.ROLLED]),set()], set([ForceFit()])),
+				MachineTask([Pieces.BLOCK, Pieces.BEARING,Pieces.ASSY_TRAY], [set([Attributes.BIG_DRILLED, Attributes.FINE_DRILLED]), set([Attributes.ROLLED]),set([Attributes.NONCONSUMABLE])], set([ForceFit()])),
 				MachineTask([Pieces.BEARING_BLOCK_ASSY], [set([Attributes.FINE_DRILLED, Attributes.ROLLED])], set([Deliver()]))],
 			timestamp=0.0)
 
@@ -75,6 +75,6 @@ class COATED_BEARING_BLOCK_ASSY(Order):
 				MachineTask([Pieces.BLOCK], [set([Attributes.BIG_DRILLED, Attributes.FINE_DRILLED])], set([Coat()])),
 				MachineTask([Pieces.BEARING], [set()], set([Procure()])),
 				MachineTask([Pieces.BEARING], [set()], set([Roll()])),
-				MachineTask([Pieces.BLOCK, Pieces.BEARING,Pieces.ASSY_TRAY], [set([Attributes.BIG_DRILLED, Attributes.FINE_DRILLED]), set([Attributes.ROLLED]),set()], set([ForceFit()])),
-				MachineTask([Pieces.BEARING_BLOCK_ASSY], [set([Attributes.FINE_DRILLED, Attributes.ROLLED])], set([Deliver()]))],
+				MachineTask([Pieces.BLOCK, Pieces.BEARING,Pieces.ASSY_TRAY], [set([Attributes.BIG_DRILLED, Attributes.FINE_DRILLED, Attributes.COATED]), set([Attributes.ROLLED]),set([Attributes.NONCONSUMABLE])], set([ForceFit()])),
+				MachineTask([Pieces.BEARING_BLOCK_ASSY], [set([Attributes.FINE_DRILLED, Attributes.ROLLED, Attributes.COATED])], set([Deliver()]))],
 			timestamp=0.0)

@@ -30,21 +30,28 @@ class Agent(PhysicalObject):
 		super(Agent, self).__init__(o_type = o_type, pos=pos)
 		self.progress = 0.0
 		self._factory = factory
+		self._last_busy = False
 		self._busy = False
 
 	@abc.abstractmethod
 	def tick(self, dt=1):
 		"""Simulation step of an agent"""
 		pass
+		
+	def visualize_activity(self):
+		if self._busy is not self._last_busy:
+			self._last_busy = self._busy
+			self._factory.activity_visualizer.update( 
+			{str(self.o_type) + "_" + str(self.uid):self._busy})
         
 class Transporter(Agent):
 
 	def __init__(self, factory, pos=[0,0]):
-		super(Transporter, self).__init__(factory, o_type='TRANSPORTER', pos=pos)
+		super(Transporter, self).__init__(factory, o_type='TRANSPORTER', 
+		pos=pos)
 		self._busy = False
 		self._progress = 0.0
 		self._move_goal = None
-		#self._task = None
 		self._carried_piece = None
 		self._current_task = None
 		self._max_vel = .1
@@ -62,6 +69,7 @@ class Transporter(Agent):
 		self._carried_piece = None
 		self._move_goal = None
 		self._current_task = None
+		self._busy = False
 
 	def _move_to_goal(self):
 		if self._move_goal is None:
@@ -86,6 +94,7 @@ class Transporter(Agent):
 	def _select_task(self):
 		if len(self._factory.transport_tasks) > 0:
 			self._current_task = min(self._factory.transport_tasks, key=attrgetter('timestamp'))
+			self._busy = True
 			self._factory.transport_tasks.remove(self._current_task)
 			self._move_goal = self._current_task.piece.owner.pos
 			self._prim_axis = random.choice([1,0])
@@ -144,31 +153,18 @@ class Machine(Agent):
 	def tick(self, dt=1):
 		"""Time tick for the machine: increases progress if there is an
 		item in work, """
-		# instead of a look-ahead, always choose 1 task in advance
-		# TODO uncomment this block and remove it from the later portion of code
-		#if len(self._tasks) < 1:
-		#	self._select_task()
+		# Hack: instead of a look-ahead, always choose 1 task in advance
+		if len(self._tasks) < 1:
+			self._select_task()
 		if self._current_task is None:
-			# TODO remove these debug print lines
-			print "\nContents of input: {} \n{}".format(self, [[x.piece_type,x.attributes] for x in self.input])
-			for task in self._factory.machine_tasks:
-				if len(self.operations.intersection(set([op.name for op in task.operations])))>0:
-					print task
-			for task in self._factory.transport_tasks:
-				print task
-			
 			if len(self._tasks)>0:
 				self._start_task()
-			else:
-				#if len(self._tasks) < 1:
-				self._select_task()
 		else:
 			if self._progress>1.0:
 				self._perform_operation()
 				self._progress = 0.0
 			else:
 				self._progress += self.productivity*dt
-		
 
 	def _perform_operation(self):
 		print '\n{} finished {} '.format(self, self._current_task)
@@ -178,20 +174,14 @@ class Machine(Agent):
 			self._worktable[i].attributes = self._worktable[i].attributes.difference(operation.removes_attr[i])
 		if len(operation.requires_pcs) > 0: # combination procedure
 			attr = set()
-			for index in combines_pcs[0]: # pass attributes to new piece
-				attr.add(self._worktable[index].attributes)
-			indexes = sorted(combines_pcs[0],reverse=True)
-			for i in indexes:
-				self._factory.remove(self._worktable[i])
-				self._worktable[i].pop
-			p = Piece(self, operation.combination[1], attributes = attr)
+			for index in operation.combines_pcs[0]: # pass attributes to new piece
+				attr = attr.union(self._worktable[index].attributes)
+				self._factory.pieces.remove(self._worktable[index])
+			self._worktable = [x for x in self._worktable if x not in [self._worktable[i] for i in operation.combines_pcs[0]]]
+			p = Piece(self, operation.combines_pcs[1], attributes = attr)
 			self._factory.pieces.add(p)
-			self.output.append(p)
-		for piece in self._worktable:
-			self.output.append(piece)
-			piece.reserved = False
-		self._worktable = []
-		self._current_task = None
+			self._worktable.append(p)
+		self._clear_worktable()
 		
 	def _start_task(self):
 		"""Look for pieces in input and if there, put in worktable"""
@@ -206,84 +196,87 @@ class Machine(Agent):
 						self._worktable.append(self.input.pop(j))
 						break
 				if found_piece == False:
-					for i, piece in self._worktable:
+					for piece in self._worktable:
 						self.input.append(piece)
 					self._worktable = []
 					break
 			if found_piece == True:
 				self._current_task = self._tasks.pop(t)
+				self._busy = True
 				break
 
-	# select the oldest task that the machine is able to do
 	def _select_task(self):
-		doable = []
-		fulfillable = []
+		"""select the oldest task that the machine is able to do"""
+		doable = self._find_doable_tasks()
+		if len(doable)>0:
+			fulfillable = self._find_fulfillable_tasks(doable)
+			if len(fulfillable)>0:
+				self._choose_fulfillable_task(fulfillable)
 
+	def _find_doable_tasks(self):
+		doable = []
 		for task in self._factory.machine_tasks:
 			for operation in task.operations:
 				if operation.name in self.operations:
 					doable.append(task)
-		if len(doable)>0:
-			#print "{} can do {}".format(self,[x for x in doable])
-			for task in doable:
-				pcs_available = True
-				reserved_pcs = []
-				# see if enough pieces exist with required attributes
-				for i, piece_type in enumerate(task.pieces):
-					suiting_pieces = self._find_suiting_pieces(piece_type,task.req_attr[i])
-					if len(suiting_pieces)>0:
-						# temporarily reserve piece to account for processes that require multiple of same type
-						suiting_pieces[0].reserved = True
-						reserved_pcs.append(suiting_pieces[0])
-					else:
-						pcs_available = False
-						break
-				if len(reserved_pcs) > 0:
-					for pc in reserved_pcs:
-						# remove temporary reservation
-						pc.reserved = False
-				if pcs_available == True:
-					fulfillable.append(task)
+		return doable
+
+	def _find_fulfillable_tasks(self, doable):
+		fulfillable = []
+		for task in doable:
+			pcs_available = True
+			reserved_pcs = []
+			# see if enough pieces exist with required attributes
+			for i, piece_type in enumerate(task.pieces):
+				suiting_pieces = self._find_suiting_pieces(piece_type,task.req_attr[i])
+				if len(suiting_pieces)>0:
+					# temporarily reserve piece to account for processes that require multiple of same type
+					suiting_pieces[0].reserved = True
+					reserved_pcs.append(suiting_pieces[0])
+				else:
+					pcs_available = False
+					break
+			if len(reserved_pcs) > 0:
+				for pc in reserved_pcs:
+					# remove temporary reservation
+					pc.reserved = False
+			if pcs_available == True:
+				fulfillable.append(task)
+		return fulfillable
+	
+	def _choose_fulfillable_task(self, fulfillable):
+		selected_task = min(fulfillable, key=attrgetter('timestamp')) #oldest task
+		for i, piece in enumerate(selected_task.pieces):
+			suiting_pieces = self._factory.find_piece_with_attr(piece,selected_task.req_attr[i])
+			if len(suiting_pieces) > 0:
+				# TODO - implement piece-choosing heuristic
+				selected_piece = random.choice(suiting_pieces)
+				self._retrieve_piece(selected_piece)
+		if len(selected_task.operations)>1: # if compound task, split
+			for op in selected_task.operations:
+				if op.name in self.operations:
+					operation = op
+					break
+			self._tasks.append(MachineTask(selected_task.pieces, deepcopy(selected_task.req_attr), set([operation])))
+			for i, piece in enumerate(selected_task.pieces):
+				selected_task.req_attr[i]=selected_task.req_attr[i].union(operation.adds_attr[i])
+				selected_task.req_attr[i]=selected_task.req_attr[i].difference(operation.removes_attr[i])
+			selected_task.operations.remove(operation)
 		else:
-			return
-		selected_task = None
-		if len(fulfillable)>0:
-			#print "\n{} can complete {}".format(self,[x for x in fulfillable])
-			selected_task = fulfillable[0]
-			for task in fulfillable: # pick oldest task
-				if (task.timestamp < selected_task.timestamp):
-					selected_task = task
-			for i, piece in enumerate(task.pieces):
-				suiting_pieces = self._factory.find_piece_with_attr(piece,task.req_attr[i])
-				if len(suiting_pieces) > 0:
-					# TODO - implement piece-choosing heuristic
-					selected_piece = random.choice(suiting_pieces)
-					self._retrieve_piece(selected_piece)
-			if len(selected_task.operations)>1: # task may contain multiple operations - select one the machine is capable of and modify task
-				for op in selected_task.operations:
-					if op.name in self.operations:
-						operation = op
-						break
-				self._tasks.append(MachineTask(selected_task.pieces, deepcopy(selected_task.req_attr), set([operation])))
-				# TODO - make this work for operations that are more complex than attr modification
-				for i, piece in enumerate(selected_task.pieces):
-					if piece in operation.accepts_pcs:
-						selected_task.req_attr[i]=selected_task.req_attr[i].union(operation.adds_attr[i])
-						selected_task.req_attr[i]=selected_task.req_attr[i].difference(operation.removes_attr[i])
-					else:
-						print '{} operation not valid for type {}'.format(operation.name,piece)
-				selected_task.operations.remove(operation)
-			else:
-				self._tasks.append(selected_task)
-				self._factory.machine_tasks.remove(selected_task)
-		else:
-			#print "\nCan't fulfill {} \n_tasks:{} \ndoable:{} \ninput:{}".format(self, self._tasks, doable, self.input)
-			return
+			self._tasks.append(selected_task)
+			self._factory.machine_tasks.remove(selected_task)
+
+	def _clear_worktable(self):
+		for piece in self._worktable:
+			self.output.append(piece)
+			piece.reserved = False
+		self._worktable = []
+		self._current_task = None
+		self._busy = False
 
 	def _retrieve_piece(self, piece):
 		piece.reserved = True
 		if piece in self.output:
-			print "\nOutput to input {}:{}".format(self, [piece.piece_type, piece.attributes] )
 			self.output.remove(piece)
 			self.input_piece(piece)
 		else:
@@ -300,9 +293,9 @@ class Machine(Agent):
 
 	def _find_pieces_in_output(self, piece_type, attrs):
 		for piece in self.output:
-			if piece.piece_type == piece_type and  \
-			attrs == piece.attributes and \
-			piece.reserved == False:
+			if (piece.piece_type == piece_type and
+			attrs == piece.attributes and
+			piece.reserved == False):
 				return piece
 		return None
 
@@ -346,8 +339,15 @@ class DeliveryMachine(Machine):
 									agent_type = Agents.DELIVERY_MACHINE,
 									operations=set([Operations.DELIVER]),
 									pos=pos,
-									productivity = 0.005,
+									productivity = 0.05,
 									name=name)
+
+	def _clear_worktable(self):
+		for piece in self._worktable:
+			self.output.append(piece)
+			#piece.reserved = False
+		self._worktable = []
+		self._current_task = None
 
 class BigDrillMachine(Machine):
 	def __init__(self, factory, pos, name=''):
