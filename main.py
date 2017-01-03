@@ -15,6 +15,7 @@ from multiagent_factory.activity_visualizer import ActivityVisualizer
 from multiagent_factory.factory import *
 from multiagent_factory.orders import *
 from multiagent_factory.pieces import *
+
  
 def main():
 	f = Factory()
