@@ -6,7 +6,6 @@ Created on Tue Oct 25 14:55:08 2016
 """
 
 # TODO make performance visualizer show full text
-# TODO allow performance visualizer to save graph
 # TODO add recipe/operation checker 
 # TODO add color to printing (?)
 # TODO add functionality for dealing with out-of-stock situations (?)
