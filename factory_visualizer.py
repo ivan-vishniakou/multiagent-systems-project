@@ -5,7 +5,7 @@ from pygame.locals import *
 
 class FactoryVisualizer(object):
     
-    FLOOR_COLOR = (220,220,220)
+    FLOOR_COLOR = (229,204,255)
     MACHINE_COLOR = (250, 100, 100)
     TRANSPORTER_COLOR = (100, 150, 250)
     MACHINE_FONT_COLOR = (100,100,100)
@@ -25,6 +25,9 @@ class FactoryVisualizer(object):
     def draw_static(self):
         surf = pygame.Surface((self.xy_to_screen(*self.factory.size)))
         surf.fill(FactoryVisualizer.FLOOR_COLOR)
+        font = pygame.font.SysFont(None, int(self.scale))
+        io_font = pygame.font.SysFont(None, int(self.scale*0.7))
+        legend_shift = 0
         for a in self.factory.agents:
             if not isinstance(a, Machine):
                 continue
@@ -35,8 +38,7 @@ class FactoryVisualizer(object):
             pygame.draw.rect(surf, FactoryVisualizer.MACHINE_COLOR, rect, 0)
             
             #PRINT NAME
-            font = pygame.font.SysFont(None, int(self.scale))
-            text = font.render(str(a), 1, FactoryVisualizer.MACHINE_FONT_COLOR)
+            text = font.render(str(a)[0], 1, FactoryVisualizer.MACHINE_FONT_COLOR)
             textpos = text.get_rect()
             textpos.bottomleft = (rect.bottomleft[0]+self.scale*0.2, 
                                   rect.bottomleft[1]-self.scale*0.1)
@@ -44,13 +46,22 @@ class FactoryVisualizer(object):
             
             #PRINT INPUT/OUTPUT
             to_print = 'I:{} O:{}'.format(len(a.input), len(a.output))
-            font = pygame.font.SysFont(None, int(self.scale*0.7))
-            text = font.render(to_print, 1, FactoryVisualizer.MACHINE_FONT_COLOR)
+            text = io_font.render(to_print, 1, FactoryVisualizer.MACHINE_FONT_COLOR)
             textpos = text.get_rect()
             textpos.topleft = (rect.bottomleft[0], 
                                   rect.bottomleft[1]+self.scale*0.1)
             surf.blit(text, textpos)
-
+            
+            #PRINT LEGEND
+            legend_text = str(a)[0] + " = " + str(a)[:-6]
+            text = io_font.render(legend_text, 1, FactoryVisualizer.MACHINE_FONT_COLOR)
+            textpos = [580, 450 + legend_shift]
+            surf.blit(text, textpos)
+            legend_shift += 30
+        legend_text = "T = TRANSPORTER"
+        text = io_font.render(legend_text, 1, FactoryVisualizer.MACHINE_FONT_COLOR)
+        textpos = [580, 450 + legend_shift]
+        surf.blit(text, textpos)
         return surf
     
     def draw_dynamic(self, background):
@@ -65,7 +76,7 @@ class FactoryVisualizer(object):
             
             #PRINT NAME
             font = pygame.font.SysFont(None, int(self.scale))
-            text = font.render(str(a), 1, FactoryVisualizer.MACHINE_FONT_COLOR)
+            text = font.render(str(a)[0], 1, FactoryVisualizer.MACHINE_FONT_COLOR)
             textpos = text.get_rect()
             textpos.bottomleft = (rect.bottomleft[0]+self.scale*0.2, 
                                   rect.bottomleft[1]-self.scale*0.1)
