@@ -19,6 +19,8 @@ class Factory(object):
 		self.transport_tasks = set()
 		self.time_step = 0.1
 		self.size = (30,30)
+		self.saved = False
+		self.started = False
 
 	def add_agent(self, agent):
 		self.agents.add(agent)
@@ -28,6 +30,13 @@ class Factory(object):
 		for a in self.agents:
 			a.tick()
 			a.visualize_activity()
+		if (len(self.transport_tasks) == 0
+		and len(self.machine_tasks) == 0):
+			if (self.saved is False and self.started == True):
+				self.saved = True
+				self.activity_visualizer.save()
+		else:
+			self.started = True
 		pass
 
 	def order_product(self, order):

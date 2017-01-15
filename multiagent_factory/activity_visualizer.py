@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
 import random as rn
+import time
+import os
 
 plt.ion()
 
@@ -11,10 +13,13 @@ class ActivityVisualizer(object):
         self._factory = factory
         self.agent_record = {}
         self.fig, self.ax = plt.subplots()
+        self.fig.set_size_inches(19.2, 10.8)
         self.ax.set_title("Agent Activity")
         self.ax.set_xlabel('Time')
         self.ax.set_ylabel('Agents')
         self.ticks = [""]
+        self.start_time = time.strftime("%Y%m%d-%H%M%S")
+        self.img_iter = 0
     
     def init_agent(self,agent,state,t):
         if agent in self.agent_record:
@@ -53,9 +58,11 @@ class ActivityVisualizer(object):
                         self.ax.autoscale_view()
                         self.ticks[self.agent_record[agent]['agent_num']] = agent + ": " + str(int(100.0*float(sum(self.agent_record[agent]['stop_times']-self.agent_record[agent]['start_times'])/float(self._factory.time)))) + "%"
                         self.ax.set_yticklabels(self.ticks)
-                        iteration = self._factory.time
-                        #plt.savefig('img/' + str(iteration) + '.png')
-
+                        
+                        #uncomment block for gif creation
+                        self.make_gif()
+                        
+                        
                         plt.draw()
         plt.yticks(np.arange(0, len(self.agent_record)+1, 1))
         #plt.yticks()
@@ -68,7 +75,20 @@ class ActivityVisualizer(object):
             print(agent)
             for item in self.agent_record[agent]:
                 print '\t' + item + ": ", self.agent_record[agent][item]
-    
+                
+    def save(self):
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+        plt.tight_layout()
+        plt.savefig('img/activity-vis_' + timestr + '.png',dpi=100)
+								
+    def make_gif(self):
+        if not os.path.exists('img/'+self.start_time):
+            os.makedirs('img/'+self.start_time)															
+        plt.tight_layout()
+        plt.savefig('img/' + self.start_time + '/' + str(self.img_iter).zfill(4) + '.png',dpi=100)
+        self.img_iter += 1
+        
+   
 def test():
     import time    
     

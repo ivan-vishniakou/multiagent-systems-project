@@ -41,12 +41,12 @@ def main():
 	s.add_to_stock(AssemblyTray(s))
 	s.add_to_stock(AssemblyTray(s))
  
-	for _ in range(50):
+	for _ in range(5):
 		s.add_to_stock(Block(s))
-	for _ in range(50):
+	for _ in range(5):
 		s.add_to_stock(Bearing(s))
 
-	for _ in range(6):
+	for _ in range(1):
 		f.order_product(BEARING_BLOCK(f.time))
 		f.order_product(COATED_BEARING_BLOCK(f.time))
 		f.order_product(BEARING_BLOCK_ASSY(f.time))
