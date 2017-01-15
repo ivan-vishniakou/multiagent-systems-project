@@ -48,7 +48,7 @@ class Agent(PhysicalObject):
         if self._busy is not self._last_busy:
             self._last_busy = self._busy
             self._factory.activity_visualizer.update( 
-            {str(self.o_type) + "_" + str(self.uid):self._busy})
+            {str(self):self._busy})
 
     def __str__(self):
         return '{}[#{}]'.format(self.agent_type, str(self.uid).zfill(3))
@@ -64,7 +64,7 @@ class Transporter(Agent):
         self._move_goal = None
         self._carried_piece = None
         self._current_task = None
-        self._max_vel = .1
+        self._max_vel = .0751
 
     def _pick_piece(self, piece):
         """Takes piece from machine output"""
