@@ -27,17 +27,26 @@ def main():
 	f.add_agent(CoatMachine(f, pos=[3,20]))
 	f.add_agent(ForceFitMachine(f, pos=[17,20]))
 	f.add_agent(DeliveryMachine(f, pos=[20,5]))
+ 
+	f.add_agent(BigDrillMachine(f, pos=[3,13]))
+	f.add_agent(FineDrillMachine(f, pos=[17,13]))
+	f.add_agent(GreaseMachine(f, pos=[10,17]))
+	f.add_agent(CoatMachine(f, pos=[3,23]))
+	f.add_agent(ForceFitMachine(f, pos=[17,23]))
+
 
 	for i in range(3):
 		f.add_agent(Transporter(f,pos=[10, 2 * (i+2)]))
 
 	s.add_to_stock(AssemblyTray(s))
-	for _ in range(9):
+	s.add_to_stock(AssemblyTray(s))
+ 
+	for _ in range(50):
 		s.add_to_stock(Block(s))
-	for _ in range(5):
+	for _ in range(50):
 		s.add_to_stock(Bearing(s))
 
-	for _ in range(2):
+	for _ in range(6):
 		f.order_product(BEARING_BLOCK(f.time))
 		f.order_product(COATED_BEARING_BLOCK(f.time))
 		f.order_product(BEARING_BLOCK_ASSY(f.time))
