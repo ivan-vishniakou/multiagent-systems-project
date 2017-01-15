@@ -333,9 +333,7 @@ class Machine(Agent):
     def does_operation(self, operation):
         return self.operation == operation
 
-    def production_time(self):
-        return 1.0/self.productivity
-
+   
 class StockMachine(Machine):
     def __init__(self, factory, pos, name=''):
         super(StockMachine, self).__init__(factory,
