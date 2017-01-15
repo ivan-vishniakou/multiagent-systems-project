@@ -53,12 +53,15 @@ class ActivityVisualizer(object):
                         self.ax.autoscale_view()
                         self.ticks[self.agent_record[agent]['agent_num']] = agent + ": " + str(int(100.0*float(sum(self.agent_record[agent]['stop_times']-self.agent_record[agent]['start_times'])/float(self._factory.time)))) + "%"
                         self.ax.set_yticklabels(self.ticks)
-                        
                         iteration = self._factory.time
                         #plt.savefig('img/' + str(iteration) + '.png')
 
                         plt.draw()
-                        
+        plt.yticks(np.arange(0, len(self.agent_record)+1, 1))
+        #plt.yticks()
+        plt.tick_params(axis='both', which='both', right='off', left='off')
+        plt.ylim([0, len(self.agent_record)+1])
+
 
     def dump(self):
         for agent in self.agent_record:
