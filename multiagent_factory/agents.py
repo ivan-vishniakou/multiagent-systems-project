@@ -140,7 +140,7 @@ class Machine(Agent):
     """Stationary machine able to perform one or more operations"""
     def __init__(self, factory, agent_type, operations,
                  pos, productivity = 0.005, name='',
-                 o_type='MACHINE'):
+                 o_type='MACHINE', queue_len = 1):
         super(Machine, self).__init__(factory,
                                       pos=pos,
                                       o_type=o_type)
@@ -155,6 +155,8 @@ class Machine(Agent):
         self.input = []
         self._worktable = []
         self.output = []
+        self.queue_len = queue_len
+
 
     def input_piece(self, piece):
         """Allows pieces to be added to machine"""
@@ -177,7 +179,7 @@ class Machine(Agent):
         """Time tick for the machine: increases progress if there is an
         item in work, """
         # Hack: instead of a look-ahead, always choose 1 task in advance
-        if len(self._tasks) < 1:
+        if len(self._tasks) < self.queue_len:
             self._select_task()
         if self._current_task is None:
             if len(self._tasks)>0:
@@ -372,7 +374,7 @@ class DeliveryMachine(Machine):
                                     operations=set([Operations.DELIVER]),
                                     pos=pos,
                                     productivity = 0.05,
-                                    name=name)
+                                    name=name, queue_len=5)
 
     def _clear_worktable(self):
         """override stock function so pieces aren't recirculated"""
