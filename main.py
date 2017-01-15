@@ -7,7 +7,6 @@ Created on Tue Oct 25 14:55:08 2016
 
 # TODO make performance visualizer show full text
 # TODO add recipe/operation checker 
-# TODO add color to printing (?)
 # TODO add functionality for dealing with out-of-stock situations (?)
 
 from factory_visualizer import FactoryVisualizer
@@ -24,7 +23,7 @@ def main():
 	f.add_agent(s)
 	f.add_agent(BigDrillMachine(f, pos=[3,10]))
 	f.add_agent(FineDrillMachine(f, pos=[17,10]))
-	f.add_agent(RollerMachine(f, pos=[10,15]))
+	f.add_agent(GreaseMachine(f, pos=[10,15]))
 	f.add_agent(CoatMachine(f, pos=[3,20]))
 	f.add_agent(ForceFitMachine(f, pos=[17,20]))
 	f.add_agent(DeliveryMachine(f, pos=[20,5]))

@@ -55,7 +55,7 @@ class ActivityVisualizer(object):
                         self.ax.set_yticklabels(self.ticks)
                         
                         iteration = self._factory.time
-                        plt.savefig('img/' + str(iteration) + '.png')
+                        #plt.savefig('img/' + str(iteration) + '.png')
 
                         plt.draw()
                         

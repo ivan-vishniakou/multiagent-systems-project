@@ -5,14 +5,6 @@ Created on Tue Oct 25 14:56:02 2016
 @author: ivan, ben, eugenia
 """
 
-class c:
-    AGEN = '\033[101m'
-    PIEC = '\033[102m'
-    TASK = '\033[46m'
-    ATTR = '\033[104m'
-    OPER = '\033[104m'
-    ENDC = '\033[0m'
-
 class UObjects():
 	MACHINE = 'MACHINE'
 	PIECE = 'PIECE'

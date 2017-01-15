@@ -19,11 +19,10 @@ from scipy.spatial import distance
 class Agents():
     STOCK_MACHINE = 'STOCK_MACHINE'
     DELIVERY_MACHINE = 'DELIVERY_MACHINE'
-    ROLLING_MACHINE = 'ROLLING_MACHINE'
+    GREASING_MACHINE = 'GREASING_MACHINE'
     BIG_DRILLING_MACHINE = 'BIG_DRILLING_MACHINE'
     FINE_DRILLING_MACHINE = 'FINE_DRILLING_MACHINE'
     OMNI_DRILLING_MACHINE = 'OMNI_DRILLING_MACHINE'
-    ROLLING_MACHINE = 'ROLLING_MACHINE'
     COATING_MACHINE = 'COATING_MACHINE'
     PRESS_MACHINE = 'PRESS_MACHINE'
     TRANSPORTER = 'TRANSPORTER'
@@ -408,11 +407,11 @@ class FineDrillMachine(Machine):
                                     productivity = 0.005,
                                     name=name)
 
-class RollerMachine(Machine):
+class GreaseMachine(Machine):
     def __init__(self, factory, pos, name=''):
-        super(RollerMachine, self).__init__(factory,
-                                    agent_type = Agents.ROLLING_MACHINE,
-                                    operations=set([Operations.ROLL]),
+        super(GreaseMachine, self).__init__(factory,
+                                    agent_type = Agents.GREASING_MACHINE,
+                                    operations=set([Operations.GREASE]),
                                     pos=pos,
                                     productivity = 0.005,
                                     name=name)

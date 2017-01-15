@@ -16,7 +16,7 @@ class Pieces():
     
 class Attributes():
 	"""Class listing the available attributes"""
-	ROLLED = 'rolled'
+	GREASED = 'greased'
 	BIG_DRILLED = 'big_drilled'
 	FINE_DRILLED = 'fine_drilled'
 	COATED = 'coated'

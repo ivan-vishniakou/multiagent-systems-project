@@ -57,7 +57,7 @@ class Operations():
 	"""Class listing the available operations"""
 	PROCURE = 'PROCURE'
 	DELIVER = 'DELIVER'
-	ROLL = 'ROLL'
+	GREASE = 'GREASE'
 	DRILL_BIG = 'DRILL_BIG'
 	DRILL_FINE = 'DRILL_FINE'
 	COAT = 'COAT'
@@ -91,12 +91,12 @@ class Deliver(Operation):
 		[], [],
 		[set()], [set()], [set()])
 
-class Roll(Operation):
+class Grease(Operation):
 	def __init__(self):
-		super(Roll, self).__init__(Operations.ROLL,
+		super(Grease, self).__init__(Operations.GREASE,
 		[Pieces.BEARING],
 		[], [],
-		[set([Attributes.ROLLED])], [set()], [set()])
+		[set([Attributes.GREASED])], [set()], [set()])
 
 class DrillBig(Operation):
 	def __init__(self):
@@ -124,5 +124,5 @@ class ForceFit(Operation):
 		super(ForceFit, self).__init__(Operations.FORCE_FIT,
 		[],
 		[Pieces.BLOCK, Pieces.BEARING, Pieces.ASSY_TRAY], [[0, 1],Pieces.BEARING_BLOCK_ASSY],
-		[set(),set(),set()], [set([Attributes.BIG_DRILLED]),set(),set()], [set([Attributes.BIG_DRILLED]),set([Attributes.ROLLED]),set()] )
+		[set(),set(),set()], [set([Attributes.BIG_DRILLED]),set(),set()], [set([Attributes.BIG_DRILLED]),set([Attributes.GREASED]),set()] )
 
