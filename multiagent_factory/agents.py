@@ -106,14 +106,18 @@ class Transporter(Agent):
                 abs(self._move_goal[1]-self.pos[1]) )<0.1*self._max_vel
 
     def _select_task(self):
-        """Chooses the closest task to complete"""
+        """Chooses the closest task to complete
         if len(self._factory.transport_tasks) > 0:
             tasks = []
             for item in self._factory.transport_tasks:
                 dist = sqrt((self.pos[0] - item.dest_machine.pos[0])**2 + (self.pos[1] - item.dest_machine.pos[1])**2)
                 tasks.append(dist)
                 if dist == min(tasks):
-                    self._current_task = item
+                    self._current_task = item"""
+        
+        """Chooses the oldest task to complete"""		 
+        if len(self._factory.transport_tasks) > 0:		
+            self._current_task = min(self._factory.transport_tasks, key=attrgetter('timestamp'))		
             self._busy = True
             self._factory.transport_tasks.remove(self._current_task)
             self._move_goal = self._current_task.piece.owner.pos
