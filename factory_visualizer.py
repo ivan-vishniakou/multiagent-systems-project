@@ -28,9 +28,11 @@ class FactoryVisualizer(object):
         font = pygame.font.SysFont(None, int(self.scale))
         io_font = pygame.font.SysFont(None, int(self.scale*0.7))
         legend_shift = 0
+        ind = 0
         for a in self.factory.agents:
             if not isinstance(a, Machine):
                 continue
+            ind += 1
             rect = pygame.Rect(self.xy_to_screen(0,0), (self.xy_to_screen(1,1)))
             rect.center = self.xy_to_screen(*a.pos)
             pygame.draw.rect(surf, FactoryVisualizer.MACHINE_COLOR, rect, 3)
@@ -51,13 +53,13 @@ class FactoryVisualizer(object):
             textpos.topleft = (rect.bottomleft[0], 
                                   rect.bottomleft[1]+self.scale*0.1)
             surf.blit(text, textpos)
-            
+            if ind < 7:
             #PRINT LEGEND
-            legend_text = str(a)[0] + " = " + str(a)[:-6]
-            text = io_font.render(legend_text, 1, FactoryVisualizer.MACHINE_FONT_COLOR)
-            textpos = [580, 450 + legend_shift]
-            surf.blit(text, textpos)
-            legend_shift += 30
+                legend_text = str(a)[0] + " = " + str(a)[:-6]
+                text = io_font.render(legend_text, 1, FactoryVisualizer.MACHINE_FONT_COLOR)
+                textpos = [580, 450 + legend_shift]
+                surf.blit(text, textpos)
+                legend_shift += 30
         legend_text = "T = TRANSPORTER"
         text = io_font.render(legend_text, 1, FactoryVisualizer.MACHINE_FONT_COLOR)
         textpos = [580, 450 + legend_shift]

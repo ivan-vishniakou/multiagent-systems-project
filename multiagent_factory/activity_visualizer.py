@@ -54,7 +54,7 @@ class ActivityVisualizer(object):
                         self.ax.add_patch(patches.Rectangle(
                             (self.agent_record[agent]['start_times'][-1], float(self.agent_record[agent]['agent_num']) - 0.4), 
                             self.agent_record[agent]['stop_times'][-1] - self.agent_record[agent]['start_times'][-1], 
-                            0.8,color=self.agent_record[agent]['color']))
+                                0.8,color=self.agent_record[agent]['color']))
                         self.ax.autoscale_view()
                         self.ticks[self.agent_record[agent]['agent_num']] = agent + ": " + str(int(100.0*float(sum(self.agent_record[agent]['stop_times']-self.agent_record[agent]['start_times'])/float(self._factory.time)))) + "%"
                         self.ax.set_yticklabels(self.ticks)
@@ -79,13 +79,13 @@ class ActivityVisualizer(object):
     def save(self):
         timestr = time.strftime("%Y%m%d-%H%M%S")
         plt.tight_layout()
-        plt.savefig('img/activity-vis_' + timestr + '.png',dpi=100)
+        #plt.savefig('img/activity-vis_' + timestr + '.png',dpi=100)
 								
     def make_gif(self):
         if not os.path.exists('img/'+self.start_time):
             os.makedirs('img/'+self.start_time)															
         plt.tight_layout()
-        plt.savefig('img/' + self.start_time + '/' + str(self.img_iter).zfill(4) + '.png',dpi=100)
+        #plt.savefig('img/' + self.start_time + '/' + str(self.img_iter).zfill(4) + '.png',dpi=100)
         self.img_iter += 1
         
    
