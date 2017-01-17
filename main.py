@@ -49,11 +49,11 @@ def main():
  
 
     #for i in range(10):
-    for i in range(17):
+    for i in range(15):
         shift = 0
-        if (2 * (i+2) > 20):
+        if (2 * (i+2) > 16):
             shift = 3
-        f.add_agent(Transporter(f,pos=[10 + shift, 2 * (i+2)%20]))
+        f.add_agent(Transporter(f,pos=[10 + shift, 2 * (i+2)%16]))
 
     s.add_to_stock(AssemblyTray(s))
     s.add_to_stock(AssemblyTray(s))
