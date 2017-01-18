@@ -85,7 +85,7 @@ class ActivityVisualizer(object):
         if not os.path.exists('img/'+self.start_time):
             os.makedirs('img/'+self.start_time)															
         plt.tight_layout()
-        #plt.savefig('img/' + self.start_time + '/' + str(self.img_iter).zfill(4) + '.png',dpi=100)
+        plt.savefig('img/' + self.start_time + '/' + str(self.img_iter).zfill(4) + '.png',dpi=100)
         self.img_iter += 1
         
    

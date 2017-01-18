@@ -48,7 +48,6 @@ def main():
  
  
 
-    #for i in range(10):
     for i in range(15):
         shift = 0
         if (2 * (i+2) > 16):
@@ -63,7 +62,7 @@ def main():
     for _ in range(50):
         s.add_to_stock(Bearing(s))
 
-    for _ in range(4):
+    for _ in range(8):
         f.order_product(BEARING_BLOCK(f.time))
         f.order_product(COATED_BEARING_BLOCK(f.time))
         f.order_product(BEARING_BLOCK_ASSY(f.time))
